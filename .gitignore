@@ -11,6 +11,9 @@
 # production
 /build
 
+# contract ABI
+src/contracts
+
 # misc
 .DS_Store
 .env.local
