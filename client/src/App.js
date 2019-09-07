@@ -2,6 +2,7 @@ import React from "react";
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import { Button, Menu, Dropdown, Layout, Modal, Icon, Spin, Alert, Row, Col } from "antd";
 import Dashboard from './components/dashboard.js';
+import Contract from './components/contract.js';
 import Menubar from './components/menubar.js';
 import Profile from './components/profile.js';
 import SideMenuBar from "./components/side-menubar.js";
@@ -165,7 +166,7 @@ class App extends React.Component {
                                     minHeight: 280
                                 }}>
                                     <Switch>
-                                        <Route path="/" component={Dashboard} exact/>
+                                        <Route path="/" component={Contract} exact/>
                                         <Route path="/profile" component={Profile}/>
                                         <Route component={PageNotFoundError}/>
                                     </Switch>
