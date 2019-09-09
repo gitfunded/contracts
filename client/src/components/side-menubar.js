@@ -4,24 +4,25 @@ import { Layout, Menu, Icon } from "antd";
 
 const { Sider } = Layout;
 
-const SideMenuBar = () => {
+const SideMenuBar = (props) => {
     return (
-        <Sider width={100} style={{ background: "#fff" }}>
-            <Menu mode="inline" defaultSelectedKeys={["0"]} className="main-menu">
+        <Sider width={200} collapsible collapsed={props.collapsed}>
+            <Menu theme="dark" mode="inline" defaultSelectedKeys={["0"]} className="main-menu">
                 <Menu.Item key="0">
                     <NavLink to="/">
+                        <Icon type="dashboard"/>
                         <span>
-                            <Icon type="dashboard" />
-
+                            Dashboard
                         </span>
                     </NavLink>
                 </Menu.Item>
 
                 <Menu.Item key="1">
                     <NavLink to="/profile">
-                        <span>
-                            <Icon type="user" />
 
+                        <Icon type="user"/>
+                        <span>
+                            Profile
                         </span>
                     </NavLink>
                 </Menu.Item>

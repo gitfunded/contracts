@@ -1,7 +1,6 @@
 import React from "react";
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
-import { Button, Menu, Dropdown, Layout, Modal, Icon, Spin, Alert, Row, Col } from "antd";
-import Dashboard from './components/dashboard.js';
+import { Button, Layout, Modal, Icon, Spin, Alert, Row, Col } from "antd";
 import Contract from './components/contract.js';
 import Menubar from './components/menubar.js';
 import Profile from './components/profile.js';
@@ -12,7 +11,7 @@ import "./App.css";
 import GitHub from "github-api";
 import {UserContext} from './Context';
 
-const { Content } = Layout;
+const { Content, Header } = Layout;
 
 const CLIENT_ID = "69bc88033c4b1bc2b4dc";
 const REDIRECT_URI = "http://localhost:3000/";
@@ -29,6 +28,7 @@ class App extends React.Component {
         me: {},
         loading: true,
         accessToken: null,
+        collapsed: false
     }
   }
 
@@ -101,6 +101,12 @@ class App extends React.Component {
         });
     };
 
+    toggleSideMenu = () => {
+        this.setState({
+            collapsed: !this.state.collapsed,
+        });
+    };
+
 
     showConfirm() {
       return(
@@ -157,8 +163,15 @@ class App extends React.Component {
                     <Layout>
                         <Menubar/>
                         <Layout>
-                            <SideMenuBar/>
+                            <SideMenuBar collapsed={this.state.collapsed}/>
                             <Layout style={{padding: "0 24px 24px"}}>
+                                <Header style={{ background: '#fff', paddingLeft: 20, height: 50 }}>
+                                    <Icon
+                                        className="trigger"
+                                        type={this.state.collapsed ? 'menu-unfold' : 'menu-fold'}
+                                        onClick={this.toggleSideMenu}
+                                    />
+                                </Header>
                                 <Content style={{
                                     background: "#fff",
                                     padding: 24,

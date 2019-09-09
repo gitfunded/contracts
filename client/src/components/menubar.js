@@ -1,5 +1,6 @@
 import React from 'react';
-import { Avatar, Layout, Menu, Dropdown, Icon } from "antd";
+import { NavLink } from 'react-router-dom';
+import { Avatar, Layout, Menu, Dropdown, Icon, Row, Col } from "antd";
 import {UserContext} from "../Context";
 
 const { Header } = Layout;
@@ -38,20 +39,32 @@ class Menubar extends React.Component {
         '2': 'Lender',
     };
     render() {
-    return(
+        return (
+            <Header className="header" style={{backgroundColor: "#17293c"}}>
+                <Row>
+                    <NavLink to="/">
 
-            <Header className="header">
-            {/*<div className="nologo" />*/}
-            <Dropdown
-            overlay={this.menu}
-            >
-            <a style={{float: "right"}} className="ant-dropdown-link" href="#">
-            <Avatar shape="square" icon="user" src={this.context.avatar_url}/>
-            </a>
-            </Dropdown>
-            <Menu theme="dark" mode="horizontal" style={{lineHeight: "64px"}} />
+                        <Col span={4}>
+                            <div className="gitfunded-logo" />
+                        </Col>
+
+                        {/*<Col span={2}>*/}
+                            {/*<span style={{color: '#bea6c6', fontSize: 20}}> SyndLend </span>*/}
+                        {/*</Col>*/}
+                    </NavLink>
+                    <Col span={20}>
+                        <Dropdown
+                            overlay={this.menu}
+                        >
+                            <a style={{float: "right"}} className="ant-dropdown-link" href="#">
+                                <Avatar shape="square" icon="user" src={this.context.avatar_url}/>
+                            </a>
+                        </Dropdown>
+                        <Menu theme="dark" mode="horizontal" style={{ lineHeight: "64px", backgroundColor: "#17293c"}} />
+                    </Col>
+                </Row>
             </Header>
-)
+        )
 }
 };
 
