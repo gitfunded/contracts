@@ -3,6 +3,10 @@ import { Skeleton, InputNumber, Row, Col, Button, Statistic, Table, Divider, Pro
 import Menubar from "./menubar";
 import {UserContext} from "../Context";
 
+import Web3Api from "../utils/web3Api";
+
+const web3api = new Web3Api();
+
 
 
 class Profile extends React.Component {
@@ -19,8 +23,20 @@ class Profile extends React.Component {
             popOverVisible: false,
             fundValue: 1000000,
             userInfospinning: false,
-            userDetails: {},
+            selectedAddress: '',
+            accountBalance: '',
         }
+    }
+
+
+    async componentWillMount() {
+
+    await web3api.initWeb3Connection();
+
+    this.setState({selectedAddress: web3api.selectedAddress,
+                   accountBalance: web3api.accountBalance});
+
+
     }
 
 
@@ -66,7 +82,7 @@ class Profile extends React.Component {
 
       <h2>Profile</h2>
       <Row>
-      <Col span={12}>
+      <Col span={11}>
 
                   <Row>
                       <Col span={8}>
@@ -190,7 +206,7 @@ class Profile extends React.Component {
           <div style={{ background: '#ECECEC', padding: '30px' }}>
 
           <Row style={{ margin: '20px 0px' }}>
-          <Col span={12}>
+          <Col span={8}>
                       <div>
             <span style={{
                 margin: "1em 0em",
@@ -211,31 +227,33 @@ class Profile extends React.Component {
 
               </Row>
 
-              <Row gutter={16}>
-                  <Popover content={<div></div>} title="Peer Info">
-                  <Col span={12}>
-                      <Button type="link" >
-                      <Statistic title="Active Peers" value={this.state.peers.length} prefix={<Icon type="team" />} />
-                      </Button>
+              <Row style={{ margin: '20px 0px' }}>
+                  <Col span={8}>
+                      <div>
+            <span style={{
+                margin: "1em 0em",
+                fontSize: "1.0em",
+                fontWeight: 500
+            }}>Address </span>
+                      </div>
                   </Col>
-                  </Popover>
                   <Col span={12}>
-                      <Statistic title={"Account Balance (" + this.state.cashBalance.split(' ')[1]+ ")"} value={this.state.cashBalance.split(" ")[0]} precision={2} />
-                          <Popover
-                              content={this.fundAccountForm()}
-                              title="Fund Account"
-                              trigger="click"
-                              visible={this.state.popOverVisible}
-                              onVisibleChange={this.handleVisibleChange}
-                          >
+                      <div>
+            <span style={{
+                margin: "1em 0em",
+                fontSize: "1.0em",
+                fontWeight: 400
+            }}>{this.state.selectedAddress}</span>
+                      </div>
+                  </Col>
 
-                      <Button style={{ marginTop: 16 }} type="primary">
-                          Fund account
-                      </Button>
-                          </Popover>
+              </Row>
 
-                      <Button type="primary" onClick={() => {}} shape="circle" icon="reload" size={'small'} style={{ marginLeft: 15, marginTop: 16 }} />
 
+              <Row gutter={16}>
+
+                  <Col span={12}>
+                      <Statistic title={"Account Balance (ETH)"} value={this.state.accountBalance} precision={9} />
 
                   </Col>
               </Row>
