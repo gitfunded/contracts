@@ -1,17 +1,21 @@
 import React, { Component } from "react";
-import GitHub from 'github-api';
+import AddProjectForm from "./modals/add-project-modal";
 import {UserContext} from '../Context';
-import { Button } from "antd";
+import { Modal } from "antd";
 import GitHubApi from "../utils/githubApi";
 
 
 
-class Dashboard extends Component {
-    state = {
+class Project extends Component {
 
-    };
 
-    ghApi = null;
+    constructor(props) {
+        super(props);
+        this.ghApi = null;
+        this.state = {showFundingForm: this.props.add};
+    }
+
+
 
     componentDidMount() {
         // Checking of the site was redirected from GitHub OAuth login
@@ -27,14 +31,40 @@ class Dashboard extends Component {
 
     }
 
+    handleOk = e => {
+        this.setState({
+            showFundingForm: false
+
+        });
+    };
+
+    handleCancel = e => {
+        this.setState({
+            showFundingForm: false
+
+        });
+    };
+
 
     render() {
 
         return (
-          <div/>
+          <div>
+
+              <Modal
+                  title="Get your project funded"
+                  visible={this.state.showFundingForm}
+                  onOk={this.handleOk}
+                  footer={null}
+                  onCancel={this.handleCancel} >
+
+                  <AddProjectForm handleOk={this.handleOk} />
+
+              </Modal>
+          </div>
         );
     }
 }
 
-export default Dashboard;
-Dashboard.contextType=UserContext;
+export default Project;
+Project.contextType=UserContext;

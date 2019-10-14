@@ -14,20 +14,30 @@ class Menubar extends React.Component {
 
 
     handleMenuClick = (e) => {
+        console.log(e);
 
     };
+
+
 
     menu = (
         <Menu onClick={this.handleMenuClick}>
         <Menu.Item key="0">
             <span> Profile </span>
         </Menu.Item>
-        <Menu.Divider />
+
         <Menu.Item key="1">
+            <NavLink to="/add">
+            <span> Add a project </span>
+            </NavLink>
+        </Menu.Item>
+
+        <Menu.Divider />
+        <Menu.Item key="2">
             <span> Settings </span>
         </Menu.Item>
         <Menu.Divider />
-        <Menu.Item key="2">
+        <Menu.Item key="3">
             <span> Logout </span>
         </Menu.Item>
         </Menu>

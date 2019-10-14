@@ -4,12 +4,14 @@ import { Button, Layout, Modal, Icon, Spin, Alert, Row, Col } from "antd";
 import Contract from './components/contract.js';
 import Menubar from './components/menubar.js';
 import Profile from './components/profile.js';
+import Project from './components/project.js';
 import SideMenuBar from "./components/side-menubar.js";
 import PageNotFoundError from './components/404.js';
 import "antd/dist/antd.css";
 import "./App.css";
 import GitHub from "github-api";
 import {UserContext} from './Context';
+import Dashboard from "./components/dashboard";
 
 const { Content, Header } = Layout;
 
@@ -75,7 +77,6 @@ class App extends React.Component {
         let context = this;
         me.getProfile(function(err, profile) {
             context.setState({me: profile, loading: false});
-            console.log(profile);
         });
     }
 
@@ -179,8 +180,9 @@ class App extends React.Component {
                                     minHeight: 280
                                 }}>
                                     <Switch>
-                                        <Route path="/" component={Contract} exact/>
-                                        <Route path="/profile" component={Profile}/>
+                                        <Route path="/" component={Dashboard} exact/>
+                                        <Route path="/profile" component={Profile} exact/>
+                                        <Route path="/add" render={(props) => <Dashboard {...props} add={true} />} exact/>
                                         <Route component={PageNotFoundError}/>
                                     </Switch>
                                 </Content>

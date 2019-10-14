@@ -1,23 +1,43 @@
-import getWeb3 from "./getWeb3";
+import GitHub from 'github-api';
 
-export default class Web3Api {
+export default class GitHubApi {
+
+    constructor(accessToken) {
+
+        this.gh = new GitHub({
+            token: accessToken
+
+        });
 
 
-   selectedAddress = '0x';
+    }
+
+    getProfileDetails() {
+        let me = this.gh.getUser();
+        me.getProfile(function(err, profile) {
+            console.log(profile);
+        });
+    }
+
+    getRepoDetails(callbackHandler) {
 
 
-    async initWeb3Connection() {
 
-        // Get network provider and web3 instance.
-        this.web3 = await getWeb3();
+           let me = this.gh.getUser();
+           me.listRepos(((err, repos) => {
+               // console.log(callback)
+               try {
+                   callbackHandler(repos);
+               }
+               catch (error) {
+                   // TODO: Fix the GitHub api callback error
+                       console.log(error)
+                   }
+           }));
 
-        // Use web3 to get the user's accounts.
-        const accounts = await this.web3.eth.getAccounts();
-        this.selectedAddress = accounts[0];
-        let accountBalanceInWei = await this.web3.eth.getBalance(this.selectedAddress);
 
-        this.accountBalance = await this.web3.utils.fromWei(accountBalanceInWei);
+
     }
 
 }
-module.export = Web3Api;
+module.export = GitHubApi;
