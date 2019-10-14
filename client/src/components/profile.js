@@ -29,49 +29,14 @@ class Profile extends React.Component {
     }
 
 
-    async componentWillMount() {
+    async componentDidMount() {
 
+    // TODO: Fix the sync await issue for the first load
     await web3api.initWeb3Connection();
-
     this.setState({selectedAddress: web3api.selectedAddress,
                    accountBalance: web3api.accountBalance});
 
-
     }
-
-
-    fundAccountForm() {
-        return(
-
-            <div>
-                <p>
-                    Enter an amount to fund
-                </p>
-                <InputNumber
-                    defaultValue={1000000}
-                    formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                    parser={value => value.replace(/\$\s?|(,*)/g, '')}
-                    onChange={(value)=>{this.setState({fundValue:value})}}
-                />
-
-            <div style={{float: "right"}}>
-            <Button type="primary" onClick={() => {}}>
-                    FUND
-            </Button>
-            </div>
-
-            </div>
-
-        )
-
-
-    }
-
-
-    handleVisibleChange = popOverVisible => {
-        this.setState({ popOverVisible });
-    };
-
 
 
 
@@ -293,7 +258,6 @@ class Profile extends React.Component {
 
           </Col>
       </Row>
-
     </div>
   );
 }
