@@ -1,18 +1,36 @@
 pragma solidity ^0.5.0;
 
-contract Hello {
+contract GitFundedGrant {
 
-  mapping (address => bytes) public userDetails;
 
-  function queryName() view public returns (bytes memory) {
-
-    return userDetails[msg.sender];
+  // New project structure
+  struct Project {
+    string repoId;
+    string title;
+    address owner;
   }
 
-  function storeName(bytes memory name) public {
 
-    userDetails[msg.sender] = name;
+  Project[] public projects;
 
+  function fetchProject(uint projectId) view public returns (string memory, string memory, address) {
+
+    Project memory project = projects[projectId];
+
+    return (project.repoId, project.title, project.owner);
+  }
+
+  function addProject(string memory repoId, string memory title) public {
+
+    Project memory project =  Project(repoId, title, msg.sender);
+
+    projects.push(project);
+
+  }
+
+
+  function getProjectsCount() public view returns (uint) {
+    return projects.length;
   }
 
 }
