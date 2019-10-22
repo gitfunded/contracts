@@ -68,12 +68,13 @@ class AddProject extends React.Component {
 
 
     setRepoDetails(repos) {
+      console.log('called', this.state.repoList);
 
         let repoList = [];
         repos.forEach((repo) => {
             repoList.push({'name': repo.name, 'id': repo.id})
         });
-        this.setState({repoList});
+        this.setState({repoList:  this.state.repoList.concat(repoList)});
 
     }
 
@@ -111,7 +112,7 @@ class AddProject extends React.Component {
                              option.props.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
                          }>
                       {
-                          this.state.repoList.map((repo) =>{
+                          this.state.repoList.map((repo, index) =>{
                                 return <Option key={repo.id} value={repo.id}>{repo.name}</Option>
                         })}
               </Select>)}

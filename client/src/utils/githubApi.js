@@ -24,8 +24,9 @@ export default class GitHubApi {
 
 
            let me = this.gh.getUser();
+           let myOrg = this.gh.getOrganization('gitfunded');
            me.listRepos(((err, repos) => {
-               // console.log(callback)
+
                try {
                    callbackHandler(repos);
                }
@@ -34,8 +35,16 @@ export default class GitHubApi {
                        console.log(error)
                    }
            }));
-
-
+        myOrg.getRepos(((err, repos) => {
+            console.log(repos)
+            try {
+                callbackHandler(repos);
+            }
+            catch (error) {
+                // TODO: Fix the GitHub api callback error
+                console.log(error)
+            }
+        }));
 
     }
 
