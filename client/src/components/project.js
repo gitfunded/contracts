@@ -1,9 +1,9 @@
 import React, { Component } from "react";
-import AddProjectForm from "./modals/add-project-modal";
 import {UserContext} from '../Context';
-import { Modal } from "antd";
+import { Button, Divider, Row, Tabs } from "antd";
 import GitHubApi from "../utils/githubApi";
 
+const { TabPane } = Tabs;
 
 
 class Project extends Component {
@@ -19,6 +19,8 @@ class Project extends Component {
 
     componentDidMount() {
         // Checking of the site was redirected from GitHub OAuth login
+
+        console.log(this.props.location.pathname.split('/')[2]);
 
         const ACCESS_TOKEN = localStorage.getItem("access_token");
         console.log('access token', ACCESS_TOKEN);
@@ -51,16 +53,33 @@ class Project extends Component {
         return (
           <div>
 
-              <Modal
-                  title="Get your project funded"
-                  visible={this.state.showFundingForm}
-                  onOk={this.handleOk}
-                  footer={null}
-                  onCancel={this.handleCancel} >
+              <Tabs defaultActiveKey="1" onChange={()=> {}}>
+                  <TabPane tab="About" key="1">
+                      <Row>
+                          #ZeroKnowledge; Encrypted Realtime Collaboration; built by XWiki Labs; Working to bring new tools to protect your Privacy ✊❤
+                      </Row>
+                      <Divider />
+                      <Row>
 
-                  <AddProjectForm handleOk={this.handleOk} />
+                      <Button type="primary" shape="round" icon="download">
+                          Fund the Project
+                      </Button>
 
-              </Modal>
+                      <Button shape="round">
+                          Submit Expense
+                      </Button>
+                      </Row>
+
+                  </TabPane>
+                  <TabPane tab="Issue Board" key="2">
+                      Issue Board
+                  </TabPane>
+                  <TabPane tab="Updates" key="3">
+                      Updates
+                  </TabPane>
+              </Tabs>
+
+
           </div>
         );
     }

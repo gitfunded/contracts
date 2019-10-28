@@ -183,6 +183,7 @@ class App extends React.Component {
                                         <Route path="/" component={Dashboard} exact/>
                                         <Route path="/profile" component={Profile} exact/>
                                         <Route path="/add" render={(props) => <Dashboard {...props} add={true} />} exact/>
+                                        <Route path="/projects" component={Project} />
                                         <Route component={PageNotFoundError}/>
                                     </Switch>
                                 </Content>

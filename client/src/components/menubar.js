@@ -25,18 +25,20 @@ class Menubar extends React.Component {
         <Menu.Item key="0">
             <span> Profile </span>
         </Menu.Item>
+        <Menu.Divider />
 
         <Menu.Item key="1">
             <NavLink to="/add">
             <span> Add a project </span>
             </NavLink>
         </Menu.Item>
-
         <Menu.Divider />
+
         <Menu.Item key="2">
             <span> Settings </span>
         </Menu.Item>
         <Menu.Divider />
+
         <Menu.Item key="3">
             <span> Logout </span>
         </Menu.Item>

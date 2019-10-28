@@ -1,7 +1,8 @@
 import React, { Component } from "react";
+import { NavLink } from 'react-router-dom';
 import AddProjectForm from "./modals/add-project-modal";
 import {UserContext} from '../Context';
-import { Button, Dropdown, Menu, Modal } from "antd";
+import { Button, Card, Col, Divider, Dropdown, Icon, Menu, Modal, Row, Statistic} from "antd";
 import GitHubApi from "../utils/githubApi";
 import Web3Api from "../utils/web3Api";
 import { default as contract } from 'truffle-contract';
@@ -37,7 +38,7 @@ class Dashboard extends Component {
         await web3api.initWeb3Connection();
         this.grantContract = contract(GrantContractArtifact);
         this.grantContract.setProvider(web3api.web3.currentProvider);
-        this.setState({projects: await this.fetchProjectMenus()})
+        this.setState({projects: await this.fetchProjects()})
 
 
     }
@@ -48,15 +49,6 @@ class Dashboard extends Component {
 
             this.setState({showFundingForm: this.props.add})
         }
-
-    }
-
-    async fetchProjectMenus() {
-
-       let projects = [];
-       await this.fetchProjects().then((i) => {projects = i});
-       return projects;
-
 
     }
 
@@ -100,8 +92,6 @@ class Dashboard extends Component {
             console.log(err);
             return [];
         }
-        console.log('done next');
-
 
 
     }
@@ -123,26 +113,6 @@ class Dashboard extends Component {
 
     render() {
 
-        const menu = (
-            <Menu>
-                <Menu.Item>
-                    <a target="_blank" rel="noopener noreferrer" href="http://www.alipay.com/">
-                        1st menu item
-                    </a>
-                </Menu.Item>
-                <Menu.Item>
-                    <a target="_blank" rel="noopener noreferrer" href="http://www.taobao.com/">
-                        2nd menu item
-                    </a>
-                </Menu.Item>
-                <Menu.Item>
-                    <a target="_blank" rel="noopener noreferrer" href="http://www.tmall.com/">
-                        3rd menu item
-                    </a>
-                </Menu.Item>
-            </Menu>
-        );
-
         return (
             <div>
 
@@ -163,6 +133,52 @@ class Dashboard extends Component {
                 } placement="bottomCenter">
                     <Button> Public Projects</Button>
                 </Dropdown>
+
+                <div style={{ background: '#ECECEC', padding: "30px"}}>
+                    <Row gutter={16}>
+                        {this.state.projects.map((project) => {
+                        return(<Col span={8}>
+                            <NavLink to={"/projects/"+project[0]}>
+                            <Card title={project[1]}
+                                  bordered={false}
+                                  style={{margin: 30}}
+                                  hoverable={true}>
+                                #ZeroKnowledge; Encrypted Realtime Collaboration; built by XWiki Labs; Working to bring new tools to protect your Privacy ✊❤
+                                <Divider />
+                                <Row gutter={16}>
+
+                                    <Col span={12}>
+                                        <Card>
+                                            <Statistic
+                                                title="Budget"
+                                                value={project[2]}
+                                                precision={2}
+                                                valueStyle={{ color: '#3f8600' }}
+                                            />
+                                        </Card>
+
+                                    </Col>
+                                    <Col span={12}>
+                                        <Card>
+                                            <Statistic
+                                                title="Funded"
+                                                value={9.3}
+                                                precision={2}
+                                                valueStyle={{ color: '#2e4ccf' }}
+                                                suffix="%"
+                                            />
+                                        </Card>
+                                    </Col>
+
+                                </Row>
+                            </Card>
+                            </NavLink>
+
+                        </Col>)
+                        })
+                        }
+                    </Row>
+                </div>,
 
                 <Modal
                     title="Get your project funded"

@@ -48,12 +48,12 @@ class AddProject extends React.Component {
 
     }
 
-    addProject(repoId, projectTitle) {
+    addProject(repoId, projectTitle, projectBudget) {
         try {
             let user_address = web3api.selectedAddress;
             this.grantContract.deployed().then(function(contractInstance) {
 
-                contractInstance.addProject(repoId, projectTitle, {gas: 1400000, from: user_address}).then(function(c) {
+                contractInstance.addProject(repoId, projectTitle, projectBudget, {gas: 1400000, from: user_address}).then(function(c) {
                     console.log(c.toLocaleString());
                 });
             });
@@ -83,7 +83,7 @@ class AddProject extends React.Component {
     this.props.form.validateFields((err, values) => {
       if (!err) {
           console.log(values);
-          this.addProject(values.repo_id.toString(), values.project_title);
+          this.addProject(values.repo_id.toString(), values.project_title, parseInt(values.project_budget));
 
           this.setState({
               confirmLoading: true,
