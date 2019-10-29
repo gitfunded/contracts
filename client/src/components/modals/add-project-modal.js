@@ -51,17 +51,21 @@ class AddProject extends React.Component {
     addProject(repoId, projectTitle, projectBudget) {
         try {
             let user_address = web3api.selectedAddress;
-            this.grantContract.deployed().then(function(contractInstance) {
+            return this.grantContract.deployed().then(function(contractInstance) {
 
-                contractInstance.addProject(repoId, projectTitle, projectBudget, {gas: 1400000, from: user_address}).then(function(c) {
-                    console.log(c.toLocaleString());
+                return contractInstance.addProject(repoId, projectTitle, projectBudget, {gas: 1400000, from: user_address}).then(function(c) {
+
+                    return c.toLocaleString();
                 });
             });
+
         }
 
         catch (err) {
             console.log(err);
         }
+
+
 
 
     }
@@ -82,12 +86,18 @@ class AddProject extends React.Component {
     e.preventDefault();
     this.props.form.validateFields((err, values) => {
       if (!err) {
-          console.log(values);
-          this.addProject(values.repo_id.toString(), values.project_title, parseInt(values.project_budget));
-
           this.setState({
               confirmLoading: true,
           });
+          this.addProject(values.repo_id.toString(), values.project_title, parseInt(values.project_budget)).then((result)=>{
+              this.setState({
+                  confirmLoading: false
+              });
+              this.props.handleOk();
+
+          });
+
+
 
       }
     });
