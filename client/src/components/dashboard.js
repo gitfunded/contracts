@@ -45,9 +45,15 @@ class Dashboard extends Component {
 
 
         // Listening to the "projectAdded" event
-        let grantContractInstance = await this.grantContract.deployed();
-        grantContractInstance.projectAdded((error, result)=>
-        {this.setState({projects: this.state.projects.concat(result.args)})});
+        try {
+            let grantContractInstance = await this.grantContract.deployed();
+            grantContractInstance.projectAdded((error, result) => {
+                this.setState({projects: this.state.projects.concat(result.args)})
+            });
+        }
+        catch(err) {
+            console.log(err);
+        }
 
 
 
