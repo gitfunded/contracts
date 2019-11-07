@@ -3,6 +3,14 @@ pragma solidity ^0.5.0;
 contract GitFundedGrant {
 
 
+  enum ExpenseStatus {
+    PENDING,
+    PARTIALLY_ACCEPTED,
+    ACCEPTED,
+    REJECTED
+  }
+
+
   // New project structure
   struct Project {
     string repoId;
@@ -10,6 +18,15 @@ contract GitFundedGrant {
     uint budget; // In dollars
     uint availableFund; // In Ether
     address owner;
+
+  }
+
+  // New expense structure
+  struct Expense {
+    string title;
+    uint amount; // In dollars
+    uint allocated; // In Ether
+    ExpenseStatus status;
   }
 
   event projectAdded (
@@ -22,6 +39,7 @@ contract GitFundedGrant {
     );
 
   Project[] public projects;
+  mapping(uint=>Expense[]) public expenses;
   address internal owner;
 
   constructor() public {
@@ -59,6 +77,13 @@ contract GitFundedGrant {
 
   }
 
+  function addExpense(uint projectId, string memory title, uint amount) public {
+
+    Expense memory expense = Expense(title, amount, 0, ExpenseStatus.PENDING);
+    expenses[projectId].push(expense);
+
+  }
+
 
   function fundProject(uint projectId) payable public {
 
@@ -76,6 +101,10 @@ contract GitFundedGrant {
 
   function getProjectsCount() public view returns (uint) {
     return projects.length;
+  }
+
+  function getExpensesCount(uint projectId) public view returns (uint) {
+    return expenses[projectId].length;
   }
 
 }

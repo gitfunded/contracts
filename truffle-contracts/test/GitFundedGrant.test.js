@@ -22,7 +22,7 @@ contract('GitFundedGrant', (accounts) => {
   });
 
     describe('projects', async () => {
-        it('creates successfully', async () => {
+        it('created successfully', async () => {
 
             await contract.addProject('001', 'testRepo1', 1000 );
             await contract.addProject('002', 'testRepo2', 2000 );
@@ -56,8 +56,17 @@ contract('GitFundedGrant', (accounts) => {
             assert.equal(parseInt(initBalance) + parseInt(web3.utils.toWei("1", "ether")),
                 await web3.eth.getBalance(accounts[1]));
 
-
         });
+        it('expenses added successfully', async () => {
+
+            await contract.addExpense(0, 'testExpense1', 50 );
+            await contract.addExpense(0, 'testExpense12', 100 );
+
+            let totalExpenses = await contract.getExpensesCount(0);
+            assert.equal(totalExpenses, 2)
+        });
+
+
 
 
     });
