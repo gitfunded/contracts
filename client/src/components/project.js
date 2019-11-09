@@ -1,6 +1,7 @@
 import React, { Component } from "react";
+import AddExpenseForm from "./modals/add-expense-modal";
 import {UserContext} from '../Context';
-import { Button, Col, Divider, InputNumber, Popover, Row, Tabs } from "antd";
+import { Button, Col, Divider, InputNumber, Modal, Popover, Row, Tabs } from "antd";
 import GitHubApi from "../utils/githubApi";
 import Web3Api from "../utils/web3Api";
 import ExchangeRateApi from '../utils/exchangeRateApi';
@@ -18,7 +19,7 @@ class Project extends Component {
     constructor(props) {
         super(props);
         this.ghApi = null;
-        this.state = {showFundingForm: this.props.add,
+        this.state = {showExpenseForm: false,
                       popOverVisible: false,
                       fundValue: 0};
     }
@@ -27,8 +28,6 @@ class Project extends Component {
 
     async componentDidMount() {
         // Checking of the site was redirected from GitHub OAuth login
-
-        console.log(this.props.location.pathname.split('/')[2]);
 
         const ACCESS_TOKEN = localStorage.getItem("access_token");
         console.log('access token', ACCESS_TOKEN);
@@ -106,14 +105,14 @@ class Project extends Component {
 
     handleOk = e => {
         this.setState({
-            showFundingForm: false
+            showExpenseForm: false
 
         });
     };
 
     handleCancel = e => {
         this.setState({
-            showFundingForm: false
+            showExpenseForm: false
 
         });
     };
@@ -143,7 +142,7 @@ class Project extends Component {
                       </Button>
                           </Popover>
 
-                      <Button shape="round" icon="file-text">
+                      <Button shape="round" icon="file-text" onClick={() => {this.setState({showExpenseForm: true})}}>
                           Submit Expense
                       </Button>
                       </Row>
@@ -156,6 +155,17 @@ class Project extends Component {
                       Updates
                   </TabPane>
               </Tabs>
+
+              <Modal
+                  title="Add a project expense"
+                  visible={this.state.showExpenseForm}
+                  onOk={this.handleOk}
+                  footer={null}
+                  onCancel={this.handleCancel} >
+
+                  <AddExpenseForm handleOk={this.handleOk} projectId={this.props.location.pathname.split('/')[2]} />
+
+              </Modal>
 
 
           </div>
