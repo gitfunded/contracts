@@ -21,6 +21,7 @@ class Project extends Component {
         this.ghApi = null;
         this.state = {showExpenseForm: false,
                       popOverVisible: false,
+                      expenses: [],
                       fundValue: 0};
     }
 
@@ -30,10 +31,10 @@ class Project extends Component {
         // Checking of the site was redirected from GitHub OAuth login
 
         const ACCESS_TOKEN = localStorage.getItem("access_token");
-        console.log('access token', ACCESS_TOKEN);
+        this.projectId = this.props.location.pathname.split('/')[2];
+
         if (ACCESS_TOKEN) {
             this.ghApi = new GitHubApi(ACCESS_TOKEN);
-            console.log('did mount');
             this.ghApi.getProfileDetails();
             this.ghApi.getRepoDetails();
         }
@@ -42,6 +43,7 @@ class Project extends Component {
         this.grantContract = contract(GrantContractArtifact);
         this.grantContract.setProvider(web3api.web3.currentProvider);
         exchangeRate.fetchEtherPrice(1000).then((amount) => {this.setState({fundValue: amount})});
+        this.setState({expenses: await this.fetchExpenses()});
 
     }
 
@@ -70,7 +72,7 @@ class Project extends Component {
               <Row>
                 <div style={{alignContent: "center"}}>
 
-                    <Button type="primary" onClick={() => {parseInt(this.fundProject(this.props.location.pathname.split('/')[2], this.state.fundValue))}}>
+                    <Button type="primary" onClick={() => {parseInt(this.fundProject(this.projectId, this.state.fundValue))}}>
                         FUND
                     </Button>
                 </div>
@@ -94,6 +96,44 @@ class Project extends Component {
 
         catch (err) {
             console.log(err);
+        }
+
+
+    }
+
+    async fetchExpenses()
+    {
+
+        try {
+            let user_address = web3api.selectedAddress;
+            let expenseList = [];
+
+            await this.grantContract.deployed().then(async (contractInstance)=>{
+
+                await contractInstance.getExpensesCount( this.projectId, {from: user_address}).then(async (result)=>{
+                    if (result) {
+                        console.log(parseInt(result));
+
+                        for (let expenseId=0; expenseId < parseInt(result); expenseId++)
+                        {
+
+                            await contractInstance.expenses(this.projectId, expenseId, {from: user_address}).then((result) => {
+                                if (result) {
+                                    expenseList.push(result);
+                                }
+                            });
+
+                        }
+                    }
+                });
+
+
+            });
+
+            return expenseList;
+        } catch (err) {
+            console.log(err);
+            return [];
         }
 
 
@@ -152,7 +192,7 @@ class Project extends Component {
                       Issue Board
                   </TabPane>
                   <TabPane tab="Updates" key="3">
-                      Updates
+                      {this.state.expenses.map((expense) => {return (<p>An expense for <b>{expense[0]}</b> amounting was added aounting $<b>{expense[1].toString()}</b></p>)})}
                   </TabPane>
               </Tabs>
 
@@ -163,7 +203,7 @@ class Project extends Component {
                   footer={null}
                   onCancel={this.handleCancel} >
 
-                  <AddExpenseForm handleOk={this.handleOk} projectId={this.props.location.pathname.split('/')[2]} />
+                  <AddExpenseForm handleOk={this.handleOk} projectId={this.projectId} />
 
               </Modal>
 
