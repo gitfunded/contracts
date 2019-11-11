@@ -31,6 +31,7 @@ contract('GitFundedGrant', (accounts) => {
             assert.equal(totalProject, 3)
 
         });
+
         it('funded successfully', async () => {
 
             await contract.fundProject(0, {from: accounts[0], value: web3.utils.toWei("1", "ether")});
@@ -51,19 +52,36 @@ contract('GitFundedGrant', (accounts) => {
 
 
             let initBalance = await web3.eth.getBalance(accounts[1]);
-            await contract.transferFund(1, accounts[1], web3.utils.toWei("1", "ether"));
+            await contract.transferFund(2, accounts[1], web3.utils.toWei("1", "ether"));
 
             assert.equal(parseInt(initBalance) + parseInt(web3.utils.toWei("1", "ether")),
                 await web3.eth.getBalance(accounts[1]));
 
         });
+
         it('expenses added successfully', async () => {
 
             await contract.addExpense(0, 'testExpense1', 50 );
-            await contract.addExpense(0, 'testExpense12', 100 );
+            await contract.addExpense(0, 'testExpense2', 100 );
 
             let totalExpenses = await contract.getExpensesCount(0);
             assert.equal(totalExpenses, 2)
+        });
+
+        it('expense accepted successfully', async () => {
+
+            let expenseRecipient = accounts[3];
+
+            await contract.fundProject(2, {from: accounts[0], value: web3.utils.toWei("1", "ether")});
+            await contract.addExpense(2, 'testExpense3', web3.utils.toWei("1.1", "ether"), {from: expenseRecipient});
+
+
+            let initBalance = await web3.eth.getBalance(expenseRecipient);
+            await contract.acceptExpense(2, 0);
+
+            assert.equal(parseInt(initBalance) + parseInt(web3.utils.toWei("1.1", "ether")),
+                await web3.eth.getBalance(expenseRecipient));
+
         });
 
 

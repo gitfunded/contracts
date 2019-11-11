@@ -22,10 +22,12 @@ contract GitFundedGrant {
   }
 
   // New expense structure
+  //  TODO: The expense amount should be maintained in dollar
   struct Expense {
     string title;
-    uint amount; // In dollars
+    uint amount; // In Ether
     uint allocated; // In Ether
+    address payable recipient;
     ExpenseStatus status;
   }
 
@@ -79,8 +81,36 @@ contract GitFundedGrant {
 
   function addExpense(uint projectId, string memory title, uint amount) public {
 
-    Expense memory expense = Expense(title, amount, 0, ExpenseStatus.PENDING);
+    Expense memory expense = Expense(title, amount, 0, msg.sender, ExpenseStatus.PENDING);
     expenses[projectId].push(expense);
+
+  }
+
+  function acceptExpense(uint projectId, uint expenseIndex) onlyProjectOwner(projectId) public {
+
+    uint amount = expenses[projectId][expenseIndex].amount;
+    require(expenses[projectId][expenseIndex].status == ExpenseStatus.PENDING);
+    require(projects[projectId].availableFund>=amount, "Funds not available");
+
+
+    expenses[projectId][expenseIndex].status = ExpenseStatus.ACCEPTED;
+    projects[projectId].availableFund -= amount;
+    expenses[projectId][expenseIndex].allocated =  amount;
+    expenses[projectId][expenseIndex].recipient.transfer(amount);
+
+  }
+
+  function acceptExpense(uint projectId, uint expenseIndex, uint amount) onlyProjectOwner(projectId) public {
+
+    require(expenses[projectId][expenseIndex].status == ExpenseStatus.PENDING);
+    require(projects[projectId].availableFund>=amount, "Funds not available");
+
+
+    expenses[projectId][expenseIndex].status = ExpenseStatus.PARTIALLY_ACCEPTED;
+    projects[projectId].availableFund -= amount;
+    expenses[projectId][expenseIndex].allocated =  amount;
+    expenses[projectId][expenseIndex].recipient.transfer(amount);
+
 
   }
 
@@ -94,6 +124,7 @@ contract GitFundedGrant {
 
   function transferFund(uint projectId, address payable recipient, uint value) onlyProjectOwner(projectId) payable public {
 
+    projects[projectId].availableFund -= value;
     recipient.transfer(value);
 
 
