@@ -54,7 +54,7 @@ contract GitFundedGrant {
   }
 
   modifier onlyProjectOwner(uint projectId)  {
-        require(msg.sender == projects[projectId].owner);
+        require(msg.sender == projects[projectId].owner, "Not Authorised");
       _;
     }
 

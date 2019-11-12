@@ -73,13 +73,12 @@ contract('GitFundedGrant', (accounts) => {
             let expenseRecipient = accounts[3];
 
             await contract.fundProject(2, {from: accounts[0], value: web3.utils.toWei("1", "ether")});
-            await contract.addExpense(2, 'testExpense3', web3.utils.toWei("1.1", "ether"), {from: expenseRecipient});
-
+            await contract.addExpense(2, 'testExpense3', web3.utils.toWei("1", "ether"), {from: expenseRecipient});
 
             let initBalance = await web3.eth.getBalance(expenseRecipient);
             await contract.acceptExpense(2, 0);
 
-            assert.equal(parseInt(initBalance) + parseInt(web3.utils.toWei("1.1", "ether")),
+            assert.equal(parseInt(initBalance) + parseInt(web3.utils.toWei("1", "ether")),
                 await web3.eth.getBalance(expenseRecipient));
 
         });
