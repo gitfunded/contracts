@@ -1,7 +1,6 @@
 import React from "react";
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import { Button, Layout, Modal, Icon, Spin, Alert, Row, Col } from "antd";
-import Contract from './components/contract.js';
 import Menubar from './components/menubar.js';
 import Profile from './components/profile.js';
 import Project from './components/project.js';

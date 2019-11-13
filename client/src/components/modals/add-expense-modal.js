@@ -1,19 +1,21 @@
 import React from 'react';
 import 'antd/dist/antd.css';
 import {
+  Button,
+  Col,
   Form,
   Select,
   Input,
   InputNumber,
-  Button,
+  Row
 } from 'antd';
-
+import ExchangeRateApi from '../../utils/exchangeRateApi';
 import Web3Api from "../../utils/web3Api";
 import { default as contract } from 'truffle-contract';
 import GrantContractArtifact from '../../contracts/GitFundedGrant.json';
 
 const web3api = new Web3Api();
-
+const exchangeRate = new ExchangeRateApi();
 const { Option } = Select;
 
 
@@ -25,6 +27,7 @@ class AddExpense extends React.Component {
     this.state = {
         repoList: [],
         confirmLoading: false,
+        expenseAmount: 0
     };
 
 
@@ -37,6 +40,8 @@ class AddExpense extends React.Component {
         this.grantContract = contract(GrantContractArtifact);
         this.grantContract.setProvider(web3api.web3.currentProvider);
 
+        exchangeRate.fetchEtherPrice(100).then((amount) => {this.setState({expenseAmount: amount})});
+
     }
 
     addExpense(projctId, expenseTitle, amount) {
@@ -44,7 +49,7 @@ class AddExpense extends React.Component {
             let user_address = web3api.selectedAddress;
             return this.grantContract.deployed().then(function(contractInstance) {
 
-                return contractInstance.addExpense(projctId, expenseTitle, amount, {gas: 1400000, from: user_address}).then(function(c) {
+                return contractInstance.addExpense(projctId, expenseTitle, web3api.web3.utils.toWei(amount.toString(), "ether"), {gas: 1400000, from: user_address}).then(function(c) {
 
                     return c.toLocaleString();
                 });
@@ -80,7 +85,7 @@ class AddExpense extends React.Component {
           this.setState({
               confirmLoading: true,
           });
-          this.addExpense(this.props.projectId, values.expense_title, parseInt(values.expense_amount)).then((result)=>{
+          this.addExpense(this.props.projectId, values.expense_title, this.state.expenseAmount).then((result)=>{
               this.setState({
                   confirmLoading: false
               });
@@ -112,12 +117,23 @@ class AddExpense extends React.Component {
           </Form.Item>
 
           <Form.Item label="Expense Amount" labelAlign="left">
-              {getFieldDecorator('expense_amount', { initialValue: 100 })(<InputNumber
+              {getFieldDecorator('expense_amount', { initialValue: 100 })(
+                  <Row>
+                  <Col span={8}>
+                  <InputNumber
+                  defaultValue={100}
                   min={1}
                   max={100000}
                   formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
                   parser={value => value.replace(/\$\s?|(,*)/g, '')}
-              />)}
+                  onChange={(amount)=>{exchangeRate.fetchEtherPrice(amount).then((value) => {this.setState({expenseAmount:value})})}}
+                  />
+                  </Col>
+                  <Col  span={8}>
+                      {this.state.expenseAmount} ETH
+                  </Col>
+
+                  </Row>)}
 
           </Form.Item>
 
