@@ -100,7 +100,8 @@ contract GitFundedGrant {
 
   }
 
-  function acceptExpense(uint projectId, uint expenseIndex, uint amount) onlyProjectOwner(projectId) public {
+  // TODO: Merge this logic with the acceptExpense by overloading the function
+  function acceptPartialExpense(uint projectId, uint expenseIndex, uint amount) onlyProjectOwner(projectId) public {
 
     require(expenses[projectId][expenseIndex].status == ExpenseStatus.PENDING);
     require(projects[projectId].availableFund>=amount, "Funds not available");
