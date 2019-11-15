@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity >=0.5.0 < 0.6.0;
 
 contract GitFundedGrant {
 
@@ -42,7 +42,7 @@ contract GitFundedGrant {
 
   Project[] public projects;
   mapping(uint=>Expense[]) public expenses;
-  address internal owner;
+  address payable internal owner;
 
   constructor() public {
     owner = msg.sender;
@@ -59,7 +59,7 @@ contract GitFundedGrant {
     }
 
   function destroy() public onlyOwner {
-//        selfdestruct(address owner);
+        selfdestruct(owner);
     }
 
   function fetchProject(uint projectId) view public returns (string memory, string memory, uint, uint, address) {
