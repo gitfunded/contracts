@@ -10,6 +10,14 @@ contract GitFundedGrant {
     REJECTED
   }
 
+  enum IssueStatus {
+    BACKLOG,
+    TODO,
+    DOING,
+    DONE,
+    REJECTED
+  }
+
 
   // New project structure
   struct Project {
@@ -31,6 +39,16 @@ contract GitFundedGrant {
     ExpenseStatus status;
   }
 
+  // New issue structure
+  //  TODO: The issue amount should be maintained in dollar
+  struct Issue {
+    string title;
+    uint amount; // In Ether
+    uint allocated; // In Ether
+    address payable recipient;
+    IssueStatus status;
+  }
+
   event projectAdded (
     string repoId,
     string title,
@@ -42,6 +60,7 @@ contract GitFundedGrant {
 
   Project[] public projects;
   mapping(uint=>Expense[]) public expenses;
+  mapping(uint=>Issue[]) public issues;
   address payable internal owner;
 
   constructor() public {
@@ -115,6 +134,26 @@ contract GitFundedGrant {
 
   }
 
+  function addIssue(uint projectId, string memory title, uint amount) public {
+
+    Issue memory issue = Issue(title, amount, 0, msg.sender, IssueStatus.BACKLOG);
+    issues[projectId].push(issue);
+
+  }
+
+  function acceptIssue(uint projectId, uint issueIndex) onlyProjectOwner(projectId) public {
+
+    uint amount = issues[projectId][issueIndex].amount;
+    require(issues[projectId][issueIndex].status == IssueStatus.BACKLOG);
+    require(projects[projectId].availableFund>=amount, "Funds not available");
+
+
+    issues[projectId][issueIndex].status = IssueStatus.TODO;
+    projects[projectId].availableFund -= amount;
+    issues[projectId][issueIndex].allocated =  amount;
+
+  }
+
 
   function fundProject(uint projectId) payable public {
 
@@ -137,6 +176,10 @@ contract GitFundedGrant {
 
   function getExpensesCount(uint projectId) public view returns (uint) {
     return expenses[projectId].length;
+  }
+
+  function getIssuesCount(uint projectId) public view returns (uint) {
+    return issues[projectId].length;
   }
 
 }

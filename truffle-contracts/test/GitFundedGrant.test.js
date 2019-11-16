@@ -83,6 +83,28 @@ contract('GitFundedGrant', (accounts) => {
 
         });
 
+        it('issues added successfully', async () => {
+
+            await contract.addIssue(0, 'testIssue1', 50 );
+            await contract.addIssue(0, 'testIssue2', 100 );
+
+            let totalExpenses = await contract.getIssuesCount(0);
+            assert.equal(totalExpenses, 2)
+        });
+
+        it('issue accepted successfully', async () => {
+
+            let issueFundRecipient = accounts[3];
+
+            await contract.fundProject(2, {from: accounts[0], value: web3.utils.toWei("1", "ether")});
+            await contract.addIssue(2, 'testIssue3', web3.utils.toWei("1", "ether"), {from: issueFundRecipient});
+
+            await contract.acceptIssue(2, 0);
+
+            assert.equal(await contract.getIssuesCount(2), 1);
+
+        });
+
 
 
 
