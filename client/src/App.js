@@ -38,7 +38,7 @@ class App extends React.Component {
 
         const ACCESS_TOKEN = localStorage.getItem("access_token") && localStorage.getItem("access_token") !=="undefined" ? localStorage.getItem("access_token") : null;
         this.setState({accessToken: ACCESS_TOKEN});
-        console.log('access token', ACCESS_TOKEN);
+
         if (ACCESS_TOKEN && ACCESS_TOKEN!=="undefined") {
             this.getProfileDetails(ACCESS_TOKEN);
             this.setState({

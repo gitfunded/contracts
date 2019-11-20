@@ -31,8 +31,9 @@ class Dashboard extends Component {
         const ACCESS_TOKEN = localStorage.getItem("access_token");
         if (ACCESS_TOKEN) {
             this.ghApi = new GitHubApi(ACCESS_TOKEN);
-            console.log('did mount');
+
             this.ghApi.getProfileDetails();
+            this.ghApi.getIssues('gitfunded','gitfunded-issues', this.setIssuesDetails);
             this.ghApi.getRepoDetails();
         }
 
@@ -68,6 +69,13 @@ class Dashboard extends Component {
 
     }
 
+    setIssuesDetails(issues) {
+        console.log('issues', issues);
+
+
+    }
+
+
 
 
 
@@ -84,9 +92,6 @@ class Dashboard extends Component {
 
                  await contractInstance.getProjectsCount( {from: user_address}).then(async (result)=>{
                     if (result) {
-                        console.log(parseInt(result));
-
-
 
                         for (let projectId=0; projectId < parseInt(result); projectId++)
                         {
@@ -136,7 +141,7 @@ class Dashboard extends Component {
         const skeleton = [];
 
         for(let i=0; i<6; i++) {
-            skeleton.push(<Col span={8}>
+            skeleton.push(<Col key={i} span={8}>
                 <Card style={{margin: 30}}>
                     <Skeleton active/>
                 </Card>
