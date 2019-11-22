@@ -74,9 +74,14 @@ class App extends React.Component {
 
         let me = gh.getUser();
         let context = this;
-        me.getProfile(function(err, profile) {
-            context.setState({me: profile, loading: false});
-        });
+        try {
+            me.getProfile(function (err, profile) {
+                context.setState({me: profile, loading: false});
+            });
+        }
+        catch(error) {
+            console.log(error);
+        }
     }
 
 

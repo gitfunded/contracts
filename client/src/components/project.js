@@ -37,7 +37,7 @@ class Project extends Component {
         if (ACCESS_TOKEN) {
             this.ghApi = new GitHubApi(ACCESS_TOKEN);
             this.ghApi.getProfileDetails();
-            this.ghApi.getRepoDetails();
+            this.ghApi.getRepoDetailsById(146140266).then((repoDetails) => {console.log(repoDetails)})
         }
 
         await web3api.initWeb3Connection();

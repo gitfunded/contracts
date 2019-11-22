@@ -1,4 +1,5 @@
 import GitHub from 'github-api';
+import GitHubRestApi from './githubRestApi';
 
 export default class GitHubApi {
 
@@ -8,6 +9,8 @@ export default class GitHubApi {
             token: accessToken
 
         });
+
+        this.ghRest = new GitHubRestApi(accessToken);
 
 
     }
@@ -19,7 +22,7 @@ export default class GitHubApi {
         });
     }
 
-    getRepoDetails(callbackHandler) {
+    getRepoList(callbackHandler) {
 
            let me = this.gh.getUser();
            let myOrg = this.gh.getOrganization('gitfunded');
@@ -27,6 +30,7 @@ export default class GitHubApi {
 
                try {
                    callbackHandler(repos);
+                   console.log(repos);
                }
                catch (error) {
                    // TODO: Fix the GitHub api callback error
@@ -60,8 +64,12 @@ export default class GitHubApi {
                 console.log(error)
             }
         });
+    }
 
+    getRepoDetailsById(repoId) {
 
+        return this.ghRest.fetchRepoDetails(repoId).then(
+            (repoDetails) => {return repoDetails})
 
     }
 

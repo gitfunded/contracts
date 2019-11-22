@@ -40,7 +40,7 @@ class AddProject extends React.Component {
         const ACCESS_TOKEN = localStorage.getItem("access_token");
         if (ACCESS_TOKEN) {
             this.ghApi = new GitHubApi(ACCESS_TOKEN);
-            this.ghApi.getRepoDetails(this.setRepoDetails);
+            this.ghApi.getRepoList(this.setRepoDetails);
         }
         await web3api.initWeb3Connection();
         this.grantContract = contract(GrantContractArtifact);

@@ -29,12 +29,12 @@ class Dashboard extends Component {
         // Checking of the site was redirected from GitHub OAuth login
 
         const ACCESS_TOKEN = localStorage.getItem("access_token");
+        console.log(ACCESS_TOKEN);
         if (ACCESS_TOKEN) {
             this.ghApi = new GitHubApi(ACCESS_TOKEN);
 
             this.ghApi.getProfileDetails();
             this.ghApi.getIssues('gitfunded','gitfunded-issues', this.setIssuesDetails);
-            this.ghApi.getRepoDetails();
         }
 
         await web3api.initWeb3Connection();
