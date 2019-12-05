@@ -23,6 +23,13 @@ $ npm install -g ganache-cli
 git clone https://github.com/gitfunded/gitfunded-web
 ```
 
+
+### Launch local blockchain (Ganache)
+
+```text
+ganache-cli --seed test
+```
+
 ### Test, compile and deploy the contract
 
 ```text
