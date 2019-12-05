@@ -1,6 +1,9 @@
 pragma solidity >=0.5.0 < 0.6.0;
+import './SafeMath.sol';
 
 contract GitFundedGrant {
+
+  using SafeMath for uint256;
 
 
   enum ExpenseStatus {
@@ -157,14 +160,14 @@ contract GitFundedGrant {
 
   function fundProject(uint projectId) payable public {
 
-    projects[projectId].availableFund += msg.value;
+    projects[projectId].availableFund = projects[projectId].availableFund.add(msg.value);
 
 
   }
 
   function transferFund(uint projectId, address payable recipient, uint value) onlyProjectOwner(projectId) payable public {
 
-    projects[projectId].availableFund -= value;
+    projects[projectId].availableFund = projects[projectId].availableFund.sub(value);
     recipient.transfer(value);
 
 
