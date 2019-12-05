@@ -34,17 +34,21 @@ class Project extends Component {
         const ACCESS_TOKEN = localStorage.getItem("access_token");
         this.projectId = this.props.location.pathname.split('/')[2];
 
-        if (ACCESS_TOKEN) {
-            this.ghApi = new GitHubApi(ACCESS_TOKEN);
-            this.ghApi.getProfileDetails();
-            this.ghApi.getRepoDetailsById(146140266).then((repoDetails) => {console.log(repoDetails)})
-        }
 
         await web3api.initWeb3Connection();
         this.grantContract = contract(GrantContractArtifact);
         this.grantContract.setProvider(web3api.web3.currentProvider);
         exchangeRate.fetchEtherPrice(1000).then((amount) => {this.setState({fundValue: amount})});
         this.setState({expenses: await this.fetchExpenses()});
+
+        // Fetch the projectInfo from the the store projects
+        let projectInfo = await this.fetchProjectInfo(this.projectId);
+
+        if (ACCESS_TOKEN) {
+            this.ghApi = new GitHubApi(ACCESS_TOKEN);
+            this.ghApi.getProfileDetails();
+            this.ghApi.getRepoDetailsById(projectInfo[0]).then((repoDetails) => {console.log(repoDetails)})
+        }
 
     }
 
@@ -97,6 +101,33 @@ class Project extends Component {
 
         catch (err) {
             console.log(err);
+        }
+
+
+    }
+
+    async fetchProjectInfo(projectId)
+    {
+
+        let projectInfo = {};
+
+        try {
+
+            let user_address = web3api.selectedAddress;
+            await this.grantContract.deployed().then(async (contractInstance)=>{
+
+                await contractInstance.fetchProject(projectId, {from: user_address}).then((result) => {
+                    if (result) {
+                         projectInfo = result;
+                    }
+                });
+
+            });
+
+            return projectInfo;
+        } catch (err) {
+            console.log(err);
+            return [];
         }
 
 
