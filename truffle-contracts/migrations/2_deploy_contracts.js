@@ -1,5 +1,5 @@
-var gitFundedGrant = artifacts.require("./GitFundedGrant.sol");
+const gitFundedGrantFactory = artifacts.require("./GitFundedGrantFactory.sol");
 
 module.exports = function(deployer) {
-  deployer.deploy(gitFundedGrant);
+  deployer.deploy(gitFundedGrantFactory);
 };
