@@ -2,7 +2,7 @@ pragma solidity >=0.5.0 < 0.6.0;
 import './GitFundedGrant.sol';
 
 contract GitFundedGrantFactory {
-  uint public projectCount;
+  uint public projectCount = 0;
   mapping(address => address[]) public projects;
 
   function newProject(
@@ -11,7 +11,8 @@ contract GitFundedGrantFactory {
     GitFundedGrant project = new GitFundedGrant(
       repoId,
       title,
-      budget
+      budget,
+      msg.sender
     );
 
     projects[msg.sender].push(address(project));
@@ -22,5 +23,9 @@ contract GitFundedGrantFactory {
 
   function getContractAddress() public view returns (address[] memory) {
     return projects[msg.sender];
+  }
+
+  function getProjectsCount() public view returns (uint) {
+    return projectCount;
   }
 }

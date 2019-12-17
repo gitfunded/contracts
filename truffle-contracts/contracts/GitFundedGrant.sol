@@ -4,12 +4,12 @@ import './SafeMath.sol';
 contract GitFundedGrant {
 
 
-  constructor(string memory repoId, string memory title, uint budget) public {
+  constructor(string memory i_repoId, string memory i_title, uint i_budget, address payable i_admin) public {
 
-    owner = msg.sender;
-    repoId = repoId;
-    title = title;
-    budget = budget;
+    repoId = i_repoId;
+    title = i_title;
+    budget = i_budget;
+    admin = i_admin;
     availableFund = 0;
     live = true;
   }
@@ -58,36 +58,34 @@ contract GitFundedGrant {
     string title,
     uint budget, // In dollars
     uint availableFund, // In Ether
-    address owner
+    address admin
 
     );
 
   Expense[] public expenses;
   Issue[] public issues;
 
-  address payable public owner;
+  address payable public admin;
   string public repoId;
   string public title;
   uint budget; // In dollars
   uint availableFund; // In Ether
   bool live;
 
-  modifier onlyOwner  {
-      require(msg.sender == owner, "Not Authorised");
+  modifier onlyAdmin  {
+      require(msg.sender == admin, "Not Authorised");
       _;
   }
 
 
-  function destroy() public onlyOwner {
-        selfdestruct(owner);
+  function destroy() public onlyAdmin {
+        selfdestruct(admin);
     }
 
-//  function fetchProject(uint projectId) view public returns (string memory, string memory, uint, uint, address) {
-//
-//    Project memory project = projects[projectId];
-//
-//    return (project.repoId, project.title, project.budget, project.availableFund, project.owner);
-//  }
+  function fetchProject() view public returns (string memory, string memory, uint, uint, address) {
+
+    return (repoId, title, budget, availableFund, admin);
+  }
 
 
   function addExpense(string memory title, uint amount) public {
@@ -97,7 +95,7 @@ contract GitFundedGrant {
 
   }
 
-  function acceptExpense(uint expenseIndex) onlyOwner public {
+  function acceptExpense(uint expenseIndex) onlyAdmin public {
 
     uint amount = expenses[expenseIndex].amount;
     require(expenses[expenseIndex].status == ExpenseStatus.PENDING);
@@ -112,7 +110,7 @@ contract GitFundedGrant {
   }
 
   // TODO: Merge this logic with the acceptExpense by overloading the function
-  function acceptPartialExpense(uint expenseIndex, uint amount) onlyOwner public {
+  function acceptPartialExpense(uint expenseIndex, uint amount) onlyAdmin public {
 
     require(expenses[expenseIndex].status == ExpenseStatus.PENDING);
     require(availableFund >= amount, "Funds not available");
@@ -133,7 +131,7 @@ contract GitFundedGrant {
 
   }
 
-  function acceptIssue(uint issueIndex) onlyOwner public {
+  function acceptIssue(uint issueIndex) onlyAdmin public {
 
     uint amount = issues[issueIndex].amount;
     require(issues[issueIndex].status == IssueStatus.BACKLOG);
@@ -154,7 +152,7 @@ contract GitFundedGrant {
 
   }
 
-  function transferFund(address payable recipient, uint value) onlyOwner payable public {
+  function transferFund(address payable recipient, uint value) onlyAdmin payable public {
 
     availableFund = availableFund.sub(value);
     recipient.transfer(value);
