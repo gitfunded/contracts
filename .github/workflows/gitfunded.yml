@@ -20,5 +20,8 @@ jobs:
     - name: npm install, build, and test
       run: |
         npm install -g truffle
+        docker run -d -p 8545:8545 trufflesuite/ganache-cli:latest
+        cd truffle-contracts && truffle test
+        
       env:
         CI: true
