@@ -53,14 +53,6 @@ contract GitFundedGrant {
     IssueStatus status;
   }
 
-  event projectAdded (
-    string repoId,
-    string title,
-    uint budget, // In dollars
-    uint availableFund, // In Ether
-    address admin
-
-    );
 
   Expense[] public expenses;
   Issue[] public issues;
