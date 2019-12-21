@@ -7,7 +7,7 @@ import GitHubApi from "../utils/githubApi";
 import Web3Api from "../utils/web3Api";
 import { default as contract } from 'truffle-contract';
 import GrantContractArtifact from '../contracts/GitFundedGrant.json';
-
+import GitFundedGrantFactory from '../contracts/GitFundedGrantFactory.json';
 const web3api = new Web3Api();
 
 
@@ -38,8 +38,9 @@ class Dashboard extends Component {
         }
 
         await web3api.initWeb3Connection();
-        this.grantContract = contract(GrantContractArtifact);
-        this.grantContract.setProvider(web3api.web3.currentProvider);
+        let grantFacrotyContract = contract(GitFundedGrantFactory);
+        grantFacrotyContract.setProvider(web3api.web3.currentProvider);
+        this.grantFacrotyContract = await grantFacrotyContract.deployed();
 
         this.setState({projects: await this.fetchProjects(),
                        spinning: false});
@@ -47,8 +48,7 @@ class Dashboard extends Component {
 
         // Listening to the "projectAdded" event
         try {
-            let grantContractInstance = await this.grantContract.deployed();
-            grantContractInstance.projectAdded((error, result) => {
+            this.grantFacrotyContract.projectAdded((error, result) => {
                 this.setState({projects: this.state.projects.concat(result.args)})
             });
         }
@@ -75,42 +75,24 @@ class Dashboard extends Component {
 
     }
 
-
-
-
-
-
-
     async fetchProjects()
     {
+
+
 
         try {
             let user_address = web3api.selectedAddress;
             let projectList = [];
 
-             await this.grantContract.deployed().then(async (contractInstance)=>{
+            const contractAddress = await this.grantFacrotyContract.getContractAddress();
 
-                 await contractInstance.getProjectsCount( {from: user_address}).then(async (result)=>{
-                    if (result) {
+            for (let projectId=0; projectId < contractAddress.length; projectId ++)
+            {
+                let projectInstance = new web3api.web3.eth.Contract(GrantContractArtifact.abi, contractAddress[projectId]);
+                let projectDetails = await projectInstance.methods.fetchProject().call();
+                projectList.push(projectDetails);
 
-                        for (let projectId=0; projectId < parseInt(result); projectId++)
-                        {
-
-                            await contractInstance.fetchProject(projectId, {from: user_address}).then((result) => {
-                                if (result) {
-                                    projectList.push(result);
-                                }
-                            });
-
-                        }
-
-
-
-                    }
-                });
-
-
-            });
+            }
 
             return projectList;
         } catch (err) {
@@ -146,7 +128,7 @@ class Dashboard extends Component {
                     <Skeleton active/>
                 </Card>
             </Col>)
-        };
+        }
 
         return (
             <div>
@@ -183,7 +165,7 @@ class Dashboard extends Component {
                     <div style={{ background: '#ECECEC', padding: "30px"}}>
                     <Row gutter={16}>
                         {this.state.projects.map((project,  index) => {
-                        return(<Col span={8}>
+                        return(<Col span={8} key={index}>
                             <NavLink to={"/projects/"+index}>
                             <Card title={project[1]}
                                   bordered={false}
