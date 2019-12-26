@@ -2,13 +2,16 @@ import React, { Component } from "react";
 import { NavLink } from 'react-router-dom';
 import AddProjectForm from "./modals/add-project-modal";
 import {UserContext} from '../Context';
-import { Button, Card, Col, Divider, Dropdown, Icon, Menu, Modal, Row, Skeleton, Spin, Statistic} from "antd";
+import { Alert, Button, Card, Col, Divider, Dropdown, Icon, Menu, Modal, Row, Skeleton, Spin, Statistic} from "antd";
 import GitHubApi from "../utils/githubApi";
 import Web3Api from "../utils/web3Api";
 import { default as contract } from 'truffle-contract';
 import GrantContractArtifact from '../contracts/GitFundedGrant.json';
 import GitFundedGrantFactory from '../contracts/GitFundedGrantFactory.json';
+import Deployment from '../utils/deployment';
+
 const web3api = new Web3Api();
+const deployment = new Deployment();
 
 
 
@@ -19,6 +22,7 @@ class Dashboard extends Component {
         super(props);
         this.ghApi = null;
         this.state = {showFundingForm: this.props.add,
+                      networkError: false,
                       spinning: true,
                       projects: []};
     }
@@ -38,26 +42,24 @@ class Dashboard extends Component {
         }
 
         await web3api.initWeb3Connection();
+
         let grantFacrotyContract = contract(GitFundedGrantFactory);
         grantFacrotyContract.setProvider(web3api.web3.currentProvider);
-        this.grantFacrotyContract = await grantFacrotyContract.deployed();
-
-        this.setState({projects: await this.fetchProjects(),
-                       spinning: false});
-
-
-        // Listening to the "projectAdded" event
         try {
+            this.grantFacrotyContract = await grantFacrotyContract.deployed();
+
+            // Listening to the "projectAdded" event
             this.grantFacrotyContract.projectAdded((error, result) => {
                 this.setState({projects: this.state.projects.concat(result.args)})
             });
         }
-        catch(err) {
-            console.log(err);
+        catch(error) {
+            this.setState({networkError: true})
+
         }
 
-
-
+        this.setState({projects: await this.fetchProjects(),
+                       spinning: false});
     }
 
     componentDidUpdate(prevProps, prevState, snapshot) {
@@ -132,6 +134,15 @@ class Dashboard extends Component {
 
         return (
             <div>
+                {
+                    this.state.networkError ?
+                    <Alert
+                    message="Network Error"
+                    description={"Please point to any of these networks: " + deployment.getActiveNetworks().map((network) => { return (network.network_name)})}
+                    type="error"
+                    closable
+                />: <div/>
+                }
 
                 <Dropdown overlay={
                     <Menu>
