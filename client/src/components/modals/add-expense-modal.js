@@ -37,33 +37,21 @@ class AddExpense extends React.Component {
     async componentDidMount() {
 
         await web3api.initWeb3Connection();
-        this.grantContract = contract(GrantContractArtifact);
-        this.grantContract.setProvider(web3api.web3.currentProvider);
+        this.projectInstance = new web3api.web3.eth.Contract(GrantContractArtifact.abi, this.props.projectId);
 
         exchangeRate.fetchEtherPrice(100).then((amount) => {this.setState({expenseAmount: amount})});
 
     }
 
-    addExpense(projctId, expenseTitle, amount) {
+    async addExpense(expenseTitle, amount) {
+
         try {
             let user_address = web3api.selectedAddress;
-            return this.grantContract.deployed().then(function(contractInstance) {
-
-                return contractInstance.addExpense(projctId, expenseTitle, web3api.web3.utils.toWei(amount.toString(), "ether"), {gas: 1400000, from: user_address}).then(function(c) {
-
-                    return c.toLocaleString();
-                });
-            });
-
+            await this.projectInstance.methods.addExpense(expenseTitle, web3api.web3.utils.toWei(amount.toString(), "ether")).send({gas: 1400000, from: user_address});
         }
-
         catch (err) {
             console.log(err);
         }
-
-
-
-
     }
 
 
@@ -85,7 +73,7 @@ class AddExpense extends React.Component {
           this.setState({
               confirmLoading: true,
           });
-          this.addExpense(this.props.projectId, values.expense_title, this.state.expenseAmount).then((result)=>{
+          this.addExpense(values.expense_title, this.state.expenseAmount).then((result)=>{
               this.setState({
                   confirmLoading: false
               });

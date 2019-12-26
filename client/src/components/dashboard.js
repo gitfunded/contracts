@@ -92,6 +92,7 @@ class Dashboard extends Component {
             {
                 let projectInstance = new web3api.web3.eth.Contract(GrantContractArtifact.abi, contractAddress[projectId]);
                 let projectDetails = await projectInstance.methods.fetchProject().call();
+                projectDetails.address = contractAddress[projectId];
                 projectList.push(projectDetails);
 
             }
@@ -159,7 +160,7 @@ class Dashboard extends Component {
                     <Row gutter={16}>
                         {this.state.projects.map((project,  index) => {
                         return(<Col span={8} key={index}>
-                            <NavLink to={"/projects/"+index}>
+                            <NavLink to={"/projects/"+project.address}>
                             <Card title={project[1]}
                                   bordered={false}
                                   style={{margin: 30}}
