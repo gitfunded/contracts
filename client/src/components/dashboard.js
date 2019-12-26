@@ -144,24 +144,6 @@ class Dashboard extends Component {
                 />: <div/>
                 }
 
-                <Dropdown overlay={
-                    <Menu>
-                        {this.state.projects.map( (value, index) => {
-
-                            return (<Menu.Item
-                                key={index} >
-                                {/* The title value is returned in the second index*/}
-                                {value[1]}
-
-                            </Menu.Item>)
-                        })
-                        }
-                    </Menu>
-
-                } placement="bottomCenter">
-                    <Button> Public Projects</Button>
-                </Dropdown>
-
 
                 {this.state.spinning ?
                 <Spin size="large" spinning={true} indicator={<Icon type="loading" style={{ fontSize: 24 }} spin />}>
