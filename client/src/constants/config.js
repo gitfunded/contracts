@@ -1,6 +1,6 @@
-export const networks = [{network_name: 'Localhost', network_id: 1234, 'deployed': true},
-    {network_name: 'Ropsten', network_id: 3, 'deployed': true},
-    {network_name: 'Rinkeby', network_id: 4, 'deployed': true},
-    {network_name: 'Goerli', network_id: 5, 'deployed': false},
-    {network_name: 'Kovan', network_id: 42, 'deployed': false},
-    {network_name: 'Mainnet', network_id: 1, 'deployed': false}];
+export const networks = [{networkName: 'Localhost', networkId: 1234, 'deployed': true},
+    {networkName: 'Ropsten', networkId: 3, 'deployed': true},
+    {networkName: 'Rinkeby', networkId: 4, 'deployed': true},
+    {networkName: 'Goerli', networkId: 5, 'deployed': false},
+    {networkName: 'Kovan', networkId: 42, 'deployed': false},
+    {networkName: 'Mainnet', networkId: 1, 'deployed': false}];

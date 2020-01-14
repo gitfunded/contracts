@@ -43,13 +43,13 @@ class Dashboard extends Component {
 
         await web3api.initWeb3Connection();
 
-        let grantFacrotyContract = contract(GitFundedGrantFactory);
-        grantFacrotyContract.setProvider(web3api.web3.currentProvider);
+        let grantFactoryContract = contract(GitFundedGrantFactory);
+        grantFactoryContract.setProvider(web3api.web3.currentProvider);
         try {
-            this.grantFacrotyContract = await grantFacrotyContract.deployed();
+            this.grantFactoryContract = await grantFactoryContract.deployed();
 
             // Listening to the "projectAdded" event
-            this.grantFacrotyContract.projectAdded((error, result) => {
+            this.grantFactoryContract.projectAdded((error, result) => {
                 this.setState({projects: this.state.projects.concat(result.args)})
             });
         }
@@ -86,7 +86,7 @@ class Dashboard extends Component {
             let user_address = web3api.selectedAddress;
             let projectList = [];
 
-            const contractAddress = await this.grantFacrotyContract.getContractAddress();
+            const contractAddress = await this.grantFactoryContract.getContractAddress();
 
             for (let projectId=0; projectId < contractAddress.length; projectId ++)
             {
@@ -139,7 +139,7 @@ class Dashboard extends Component {
                     this.state.networkError ?
                     <Alert
                     message="Network Error"
-                    description={"Please point to any of these networks: " + deployment.getActiveNetworks().map((network) => { return (network.network_name)})}
+                    description={"Please point to any of these networks: " + deployment.getActiveNetworks().map((network) => { return (network.networkName)})}
                     type="error"
                     closable
                 />: <div/>

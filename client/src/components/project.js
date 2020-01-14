@@ -80,7 +80,7 @@ class Project extends Component {
               <Row>
                 <div style={{alignContent: "center"}}>
 
-                    <Button type="primary" onClick={() => {parseInt(this.fundProject(this.state.fundValue))}}>
+                    <Button type="primary" onClick={() => { this.fundProject(this.state.fundValue)}}>
                         FUND
                     </Button>
                 </div>
