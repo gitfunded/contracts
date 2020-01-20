@@ -11,7 +11,7 @@ import {
 import GitHubApi from "../../utils/githubApi";
 import Web3Api from "../../utils/web3Api";
 import { default as contract } from 'truffle-contract';
-import GrantContractArtifact from '../../contracts/GitFundedGrant.json';
+import GitFundedGrantFactory from '../../contracts/GitFundedGrantFactory.json';
 
 const web3api = new Web3Api();
 
@@ -43,17 +43,20 @@ class AddProject extends React.Component {
             this.ghApi.getRepoList(this.setRepoDetails);
         }
         await web3api.initWeb3Connection();
-        this.grantContract = contract(GrantContractArtifact);
-        this.grantContract.setProvider(web3api.web3.currentProvider);
+        this.grantFactoyContract = contract(GitFundedGrantFactory);
+        this.grantFactoyContract.setProvider(web3api.web3.currentProvider);
+        // this.grantFacrotyContract = await grantFacrotyContract.deployed();
 
     }
 
     addProject(repoId, projectTitle, projectBudget) {
         try {
             let user_address = web3api.selectedAddress;
-            return this.grantContract.deployed().then(function(contractInstance) {
+            return this.grantFactoyContract.deployed().then(function(contractInstance) {
 
-                return contractInstance.addProject(repoId, projectTitle, projectBudget, {gas: 1400000, from: user_address}).then(function(c) {
+
+                //TODO: Add missing GAS from config
+                return contractInstance.newProject(repoId, projectTitle, projectBudget, {from: user_address}).then(function(c) {
 
                     return c.toLocaleString();
                 });

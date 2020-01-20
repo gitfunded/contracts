@@ -8,6 +8,8 @@ import Web3Api from "../utils/web3Api";
 import ExchangeRateApi from '../utils/exchangeRateApi';
 import { default as contract } from 'truffle-contract';
 import GrantContractArtifact from '../contracts/GitFundedGrant.json';
+import GitFundedGrantFactory from '../contracts/GitFundedGrantFactory.json';
+import Deployment from '../utils/deployment';
 
 const web3api = new Web3Api();
 const exchangeRate = new ExchangeRateApi();
@@ -36,13 +38,14 @@ class Project extends Component {
 
 
         await web3api.initWeb3Connection();
-        this.grantContract = contract(GrantContractArtifact);
-        this.grantContract.setProvider(web3api.web3.currentProvider);
+        this.projectInstance = new web3api.web3.eth.Contract(GrantContractArtifact.abi, this.projectId);
+
+
         exchangeRate.fetchEtherPrice(1000).then((amount) => {this.setState({fundValue: amount})});
         this.setState({expenses: await this.fetchExpenses()});
 
-        // Fetch the projectInfo from the the store projects
-        let projectInfo = await this.fetchProjectInfo(this.projectId);
+        // Fetch the projectInfo from the the grant contract
+        let projectInfo = await this.fetchProjectInfo();
 
         if (ACCESS_TOKEN) {
             this.ghApi = new GitHubApi(ACCESS_TOKEN);
@@ -77,7 +80,7 @@ class Project extends Component {
               <Row>
                 <div style={{alignContent: "center"}}>
 
-                    <Button type="primary" onClick={() => {parseInt(this.fundProject(this.projectId, this.state.fundValue))}}>
+                    <Button type="primary" onClick={() => { this.fundProject(this.state.fundValue)}}>
                         FUND
                     </Button>
                 </div>
@@ -88,17 +91,11 @@ class Project extends Component {
         )
     }
 
-    fundProject(projectId, amount) {
+    async fundProject(amount) {
         try {
             let user_address = web3api.selectedAddress;
-            this.grantContract.deployed().then(function(contractInstance) {
-
-                contractInstance.fundProject(projectId, {gas: 1400000, from: user_address, value: web3api.web3.utils.toWei(amount.toString(),"ether")}).then(function(c) {
-                    console.log(c.toLocaleString());
-                });
-            });
+            await this.projectInstance.methods.fundProject().send({gas: 1400000, from: user_address, value: web3api.web3.utils.toWei(amount.toString(),"ether")});
         }
-
         catch (err) {
             console.log(err);
         }
@@ -106,43 +103,29 @@ class Project extends Component {
 
     }
 
-    async fetchProjectInfo(projectId)
+    async fetchProjectInfo()
     {
-
-        let projectInfo = {};
 
         try {
 
             let user_address = web3api.selectedAddress;
-            await this.grantContract.deployed().then(async (contractInstance)=>{
-
-                await contractInstance.fetchProject(projectId, {from: user_address}).then((result) => {
-                    if (result) {
-                         projectInfo = result;
-                    }
-                });
-
-            });
+            let projectInfo = await this.projectInstance.methods.fetchProject().call();
 
             return projectInfo;
         } catch (err) {
             console.log(err);
             return [];
         }
-
-
     }
 
-    acceptExpense(projectId, expenseIndex, amount=0) {
+    async acceptExpense(expenseIndex, amount=0) {
         try {
             let user_address = web3api.selectedAddress;
-            this.grantContract.deployed().then(function(contractInstance) {
 
-                contractInstance.acceptExpense(projectId, expenseIndex, {gas: 1400000, from: user_address}).then(function(c) {
-                    console.log(c.toLocaleString());
-                });
-            });
+
+            await this.projectInstance.methods.acceptExpense(expenseIndex).send({gas: 1400000, from: user_address});
         }
+
 
         catch (err) {
             console.log(err);
@@ -158,27 +141,16 @@ class Project extends Component {
             let user_address = web3api.selectedAddress;
             let expenseList = [];
 
-            await this.grantContract.deployed().then(async (contractInstance)=>{
+            let expenseCount = await this.projectInstance.methods.getExpensesCount().call();
 
-                await contractInstance.getExpensesCount( this.projectId, {from: user_address}).then(async (result)=>{
-                    if (result) {
-                        console.log(parseInt(result));
+            for (let expenseId=0; expenseId < parseInt(expenseCount); expenseId++)
+            {
 
-                        for (let expenseId=0; expenseId < parseInt(result); expenseId++)
-                        {
+                let expense = await this.projectInstance.methods.expenses(expenseId).call();
 
-                            await contractInstance.expenses(this.projectId, expenseId, {from: user_address}).then((result) => {
-                                if (result) {
-                                    expenseList.push(result);
-                                }
-                            });
+                        expenseList.push(expense);
 
-                        }
-                    }
-                });
-
-
-            });
+            }
 
             return expenseList;
         } catch (err) {
@@ -250,7 +222,7 @@ class Project extends Component {
                       {this.state.expenses.map(( expense, index) => {
 
                           return(
-                              <Comment
+                              <Comment key={index}
                           actions={[
                               <span key="comment-basic-like">
                                 <Tooltip title="Like">
@@ -272,7 +244,7 @@ class Project extends Component {
                                 </Tooltip>
 
                               </span>,
-                              expense[4]==0 ?<span key="comment-basic-reply-to" onClick={() => {this.acceptExpense(this.projectId, index);}}>Accept</span> : <span/>,
+                              expense[4]==0 ?<span key="comment-basic-reply-to" onClick={() => {this.acceptExpense(index);}}>Accept</span> : <span/>,
                           ]}
                           author={expense[0]}
                           avatar={

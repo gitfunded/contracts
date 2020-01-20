@@ -2,13 +2,16 @@ import React, { Component } from "react";
 import { NavLink } from 'react-router-dom';
 import AddProjectForm from "./modals/add-project-modal";
 import {UserContext} from '../Context';
-import { Button, Card, Col, Divider, Dropdown, Icon, Menu, Modal, Row, Skeleton, Spin, Statistic} from "antd";
+import { Alert, Button, Card, Col, Divider, Dropdown, Icon, Menu, Modal, Row, Skeleton, Spin, Statistic} from "antd";
 import GitHubApi from "../utils/githubApi";
 import Web3Api from "../utils/web3Api";
 import { default as contract } from 'truffle-contract';
 import GrantContractArtifact from '../contracts/GitFundedGrant.json';
+import GitFundedGrantFactory from '../contracts/GitFundedGrantFactory.json';
+import Deployment from '../utils/deployment';
 
 const web3api = new Web3Api();
+const deployment = new Deployment();
 
 
 
@@ -19,6 +22,7 @@ class Dashboard extends Component {
         super(props);
         this.ghApi = null;
         this.state = {showFundingForm: this.props.add,
+                      networkError: false,
                       spinning: true,
                       projects: []};
     }
@@ -38,26 +42,24 @@ class Dashboard extends Component {
         }
 
         await web3api.initWeb3Connection();
-        this.grantContract = contract(GrantContractArtifact);
-        this.grantContract.setProvider(web3api.web3.currentProvider);
 
-        this.setState({projects: await this.fetchProjects(),
-                       spinning: false});
-
-
-        // Listening to the "projectAdded" event
+        let grantFactoryContract = contract(GitFundedGrantFactory);
+        grantFactoryContract.setProvider(web3api.web3.currentProvider);
         try {
-            let grantContractInstance = await this.grantContract.deployed();
-            grantContractInstance.projectAdded((error, result) => {
+            this.grantFactoryContract = await grantFactoryContract.deployed();
+
+            // Listening to the "projectAdded" event
+            this.grantFactoryContract.projectAdded((error, result) => {
                 this.setState({projects: this.state.projects.concat(result.args)})
             });
         }
-        catch(err) {
-            console.log(err);
+        catch(error) {
+            this.setState({networkError: true})
+
         }
 
-
-
+        this.setState({projects: await this.fetchProjects(),
+                       spinning: false});
     }
 
     componentDidUpdate(prevProps, prevState, snapshot) {
@@ -75,42 +77,25 @@ class Dashboard extends Component {
 
     }
 
-
-
-
-
-
-
     async fetchProjects()
     {
+
+
 
         try {
             let user_address = web3api.selectedAddress;
             let projectList = [];
 
-             await this.grantContract.deployed().then(async (contractInstance)=>{
+            const contractAddress = await this.grantFactoryContract.getContractAddress();
 
-                 await contractInstance.getProjectsCount( {from: user_address}).then(async (result)=>{
-                    if (result) {
+            for (let projectId=0; projectId < contractAddress.length; projectId ++)
+            {
+                let projectInstance = new web3api.web3.eth.Contract(GrantContractArtifact.abi, contractAddress[projectId]);
+                let projectDetails = await projectInstance.methods.fetchProject().call();
+                projectDetails.address = contractAddress[projectId];
+                projectList.push(projectDetails);
 
-                        for (let projectId=0; projectId < parseInt(result); projectId++)
-                        {
-
-                            await contractInstance.fetchProject(projectId, {from: user_address}).then((result) => {
-                                if (result) {
-                                    projectList.push(result);
-                                }
-                            });
-
-                        }
-
-
-
-                    }
-                });
-
-
-            });
+            }
 
             return projectList;
         } catch (err) {
@@ -146,28 +131,19 @@ class Dashboard extends Component {
                     <Skeleton active/>
                 </Card>
             </Col>)
-        };
+        }
 
         return (
             <div>
-
-                <Dropdown overlay={
-                    <Menu>
-                        {this.state.projects.map( (value, index) => {
-
-                            return (<Menu.Item
-                                key={index} >
-                                {/* The title value is returned in the second index*/}
-                                {value[1]}
-
-                            </Menu.Item>)
-                        })
-                        }
-                    </Menu>
-
-                } placement="bottomCenter">
-                    <Button> Public Projects</Button>
-                </Dropdown>
+                {
+                    this.state.networkError ?
+                    <Alert
+                    message="Network Error"
+                    description={"Please point to any of these networks: " + deployment.getActiveNetworks().map((network) => { return (network.networkName)})}
+                    type="error"
+                    closable
+                />: <div/>
+                }
 
 
                 {this.state.spinning ?
@@ -183,8 +159,8 @@ class Dashboard extends Component {
                     <div style={{ background: '#ECECEC', padding: "30px"}}>
                     <Row gutter={16}>
                         {this.state.projects.map((project,  index) => {
-                        return(<Col span={8}>
-                            <NavLink to={"/projects/"+index}>
+                        return(<Col span={8} key={index}>
+                            <NavLink to={"/projects/"+project.address}>
                             <Card title={project[1]}
                                   bordered={false}
                                   style={{margin: 30}}

@@ -1,0 +1,14 @@
+# Changelog
+All notable changes to this project will be documented in this file.
+
+## [1.0.0] - 2019-12-16
+### Added
+- Factory pattern deployment of projects
+
+### Changed
+- GitFundedGrant constructor
+- Issue and Expense data structure
+
+### Removed
+- Project structure
+- onlyProjectOwner modifier
