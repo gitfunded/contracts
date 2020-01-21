@@ -1,10 +1,11 @@
 pragma solidity >=0.5.0 < 0.6.0;
 import './SafeMath.sol';
+import './bounties/BountiesMetaTxRelayer.sol';
 
 contract GitFundedGrant {
 
 
-  constructor(string memory i_repoId, string memory i_title, uint i_budget, address payable i_admin) public {
+  constructor(string memory i_repoId, string memory i_title, uint i_budget, address payable i_admin, address i_bountyAddress) public {
 
     repoId = i_repoId;
     title = i_title;
@@ -12,6 +13,8 @@ contract GitFundedGrant {
     admin = i_admin;
     availableFund = 0;
     live = true;
+
+    bountiesContract = StandardBounties(i_bountyAddress);
   }
 
   using SafeMath for uint256;
@@ -63,6 +66,7 @@ contract GitFundedGrant {
   uint budget; // In dollars
   uint availableFund; // In Ether
   bool live;
+  StandardBounties public bountiesContract;
 
   modifier onlyAdmin  {
       require(msg.sender == admin, "Not Authorised");
