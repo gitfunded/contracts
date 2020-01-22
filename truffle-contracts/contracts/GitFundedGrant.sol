@@ -14,7 +14,7 @@ contract GitFundedGrant {
     availableFund = 0;
     live = true;
 
-    bountiesContract = StandardBounties(i_bountyAddress);
+    bountiesContract = BountiesMetaTxRelayer(i_bountyAddress);
   }
 
   using SafeMath for uint256;
@@ -66,7 +66,7 @@ contract GitFundedGrant {
   uint budget; // In dollars
   uint availableFund; // In Ether
   bool live;
-  StandardBounties public bountiesContract;
+  BountiesMetaTxRelayer public bountiesContract;
 
   modifier onlyAdmin  {
       require(msg.sender == admin, "Not Authorised");
@@ -120,26 +120,6 @@ contract GitFundedGrant {
 
   }
 
-  function addIssue(string memory title, uint amount) public {
-
-    Issue memory issue = Issue(title, amount, 0, msg.sender, IssueStatus.BACKLOG);
-    issues.push(issue);
-
-  }
-
-  function acceptIssue(uint issueIndex) onlyAdmin public {
-
-    uint amount = issues[issueIndex].amount;
-    require(issues[issueIndex].status == IssueStatus.BACKLOG);
-    require(availableFund >= amount, "Funds not available");
-
-
-    issues[issueIndex].status = IssueStatus.TODO;
-    availableFund -= amount;
-    issues[issueIndex].allocated =  amount;
-
-  }
-
 
   function fundProject() payable public {
 
@@ -164,5 +144,45 @@ contract GitFundedGrant {
   function getIssuesCount() public view returns (uint) {
     return issues.length;
   }
+
+
+  // Bounties related methods are called for Issues
+
+
+  //TODO: Modify the Issue struct to store more bounty details
+    function addIssue(string memory title, uint amount) public {
+
+        Issue memory issue = Issue(title, amount, 0, msg.sender, IssueStatus.BACKLOG);
+        issues.push(issue);
+
+    }
+
+    function acceptIssue(uint issueIndex,
+            bytes memory signature,
+            address payable[] memory _issuers,
+            address[] memory _approvers,
+            string memory _data,
+            uint _deadline,
+            address _token,
+            uint _tokenVersion,
+            uint _nonce) onlyAdmin public {
+
+        uint amount = issues[issueIndex].amount;
+        require(issues[issueIndex].status == IssueStatus.BACKLOG);
+        require(availableFund >= amount, "Funds not available");
+
+
+        issues[issueIndex].status = IssueStatus.TODO;
+        availableFund -= amount;
+        issues[issueIndex].allocated =  amount;
+
+        bountiesContract.metaIssueBounty(signature, _issuers,
+            _approvers, _data, _deadline, _token, _tokenVersion, _nonce);
+
+    }
+
+
+
+
 
 }

@@ -23,7 +23,7 @@ module.exports = function(deployer) {
             bountyContractInstance.setMetaTxRelayer(bountyRelayerContractAddress);
         });
 
-        await deployer.deploy(gitFundedGrantFactory, bountyContractAddress).then(() => {
+        await deployer.deploy(gitFundedGrantFactory, bountyRelayerContractAddress).then(() => {
 
             console.log("gitFundedGrantFactory address: ", gitFundedGrantFactory.address)
         });
