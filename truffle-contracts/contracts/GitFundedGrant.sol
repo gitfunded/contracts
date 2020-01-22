@@ -84,9 +84,9 @@ contract GitFundedGrant {
   }
 
 
-  function addExpense(string memory title, uint amount) public {
+  function addExpense(string memory _title, uint _amount) public {
 
-    Expense memory expense = Expense(title, amount, 0, msg.sender, ExpenseStatus.PENDING);
+    Expense memory expense = Expense(_title, _amount, 0, msg.sender, ExpenseStatus.PENDING);
     expenses.push(expense);
 
   }
@@ -150,9 +150,9 @@ contract GitFundedGrant {
 
 
   //TODO: Modify the Issue struct to store more bounty details
-    function addIssue(string memory title, uint amount) public {
+    function addIssue(string memory _title, uint _amount) public {
 
-        Issue memory issue = Issue(title, amount, 0, msg.sender, IssueStatus.BACKLOG);
+        Issue memory issue = Issue(_title, _amount, 0, msg.sender, IssueStatus.BACKLOG);
         issues.push(issue);
 
     }
