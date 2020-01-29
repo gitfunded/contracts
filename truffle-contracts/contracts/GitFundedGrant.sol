@@ -156,8 +156,8 @@ contract GitFundedGrant {
         issues.push(issue);
 
     }
-
-    function acceptIssue(uint issueIndex,
+  // A bounty will be created without funding
+    function acceptIssueWithNoFund(uint issueIndex,
             bytes memory signature,
             address payable[] memory _issuers,
             address[] memory _approvers,
@@ -180,6 +180,32 @@ contract GitFundedGrant {
             _approvers, _data, _deadline, _token, _tokenVersion, _nonce);
 
     }
+
+
+ // A bounty will be created by funding it with the existing grant amount
+  function acceptIssue(uint issueIndex,
+    bytes memory signature,
+    address payable[] memory _issuers,
+    address[] memory _approvers,
+    string memory _data,
+    uint _deadline,
+    address _token,
+    uint _tokenVersion,
+    uint _depositAmount,
+    uint _nonce) onlyAdmin public payable {
+
+    uint amount = issues[issueIndex].amount;
+    require(issues[issueIndex].status == IssueStatus.BACKLOG);
+    require(availableFund >= amount, "Funds not available");
+
+
+    issues[issueIndex].status = IssueStatus.TODO;
+    availableFund -= amount;
+    issues[issueIndex].allocated =  amount;
+    bountiesContract.metaIssueAndContribute.value(amount)(signature, _issuers,
+      _approvers, _data, _deadline, _token, _tokenVersion, _depositAmount, _nonce);
+
+  }
 
 
 
