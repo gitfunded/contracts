@@ -3,16 +3,25 @@ import './GitFundedGrant.sol';
 
 contract GitFundedGrantFactory {
   uint public projectCount = 0;
+  address bountyAddress; // This is actually BountiesMetaTxRelayer address
   mapping(address => address[]) public projects;
 
-    event projectAdded (
+  constructor(address i_bountyAddress) public {
+
+    bountyAddress = i_bountyAddress;
+
+
+  }
+
+
+  event projectAdded (
         string repoId,
         string title,
         uint budget, // In dollars
         uint availableFund, // In Ether
         address admin
 
-    );
+  );
 
   function newProject(
     string memory repoId, string memory title, uint budget) public returns (address) {
@@ -21,7 +30,8 @@ contract GitFundedGrantFactory {
       repoId,
       title,
       budget,
-      msg.sender
+      msg.sender,
+      bountyAddress
     );
 
     projects[msg.sender].push(address(project));

@@ -1,10 +1,15 @@
 pragma solidity >=0.5.0 < 0.6.0;
 import './SafeMath.sol';
+import './bounties/BountiesMetaTxRelayer.sol';
 
 contract GitFundedGrant {
 
 
-  constructor(string memory i_repoId, string memory i_title, uint i_budget, address payable i_admin) public {
+    uint public version = 1;
+    uint public minorVersion = 1;
+
+
+  constructor(string memory i_repoId, string memory i_title, uint i_budget, address payable i_admin, address i_bountyAddress) public {
 
     repoId = i_repoId;
     title = i_title;
@@ -12,6 +17,8 @@ contract GitFundedGrant {
     admin = i_admin;
     availableFund = 0;
     live = true;
+
+    bountiesContract = BountiesMetaTxRelayer(i_bountyAddress);
   }
 
   using SafeMath for uint256;
@@ -63,6 +70,7 @@ contract GitFundedGrant {
   uint budget; // In dollars
   uint availableFund; // In Ether
   bool live;
+  BountiesMetaTxRelayer public bountiesContract;
 
   modifier onlyAdmin  {
       require(msg.sender == admin, "Not Authorised");
@@ -80,9 +88,9 @@ contract GitFundedGrant {
   }
 
 
-  function addExpense(string memory title, uint amount) public {
+  function addExpense(string memory _title, uint _amount) public {
 
-    Expense memory expense = Expense(title, amount, 0, msg.sender, ExpenseStatus.PENDING);
+    Expense memory expense = Expense(_title, _amount, 0, msg.sender, ExpenseStatus.PENDING);
     expenses.push(expense);
 
   }
@@ -116,26 +124,6 @@ contract GitFundedGrant {
 
   }
 
-  function addIssue(string memory title, uint amount) public {
-
-    Issue memory issue = Issue(title, amount, 0, msg.sender, IssueStatus.BACKLOG);
-    issues.push(issue);
-
-  }
-
-  function acceptIssue(uint issueIndex) onlyAdmin public {
-
-    uint amount = issues[issueIndex].amount;
-    require(issues[issueIndex].status == IssueStatus.BACKLOG);
-    require(availableFund >= amount, "Funds not available");
-
-
-    issues[issueIndex].status = IssueStatus.TODO;
-    availableFund -= amount;
-    issues[issueIndex].allocated =  amount;
-
-  }
-
 
   function fundProject() payable public {
 
@@ -160,5 +148,71 @@ contract GitFundedGrant {
   function getIssuesCount() public view returns (uint) {
     return issues.length;
   }
+
+
+  // Bounties related methods are called for Issues
+
+
+  //TODO: Modify the Issue struct to store more bounty details
+    function addIssue(string memory _title, uint _amount) public {
+
+        Issue memory issue = Issue(_title, _amount, 0, msg.sender, IssueStatus.BACKLOG);
+        issues.push(issue);
+
+    }
+  // A bounty will be created without funding
+    function acceptIssueWithNoFund(uint issueIndex,
+            bytes memory signature,
+            address payable[] memory _issuers,
+            address[] memory _approvers,
+            string memory _data,
+            uint _deadline,
+            address _token,
+            uint _tokenVersion,
+            uint _nonce) onlyAdmin public {
+
+        uint amount = issues[issueIndex].amount;
+        require(issues[issueIndex].status == IssueStatus.BACKLOG);
+        require(availableFund >= amount, "Funds not available");
+
+
+        issues[issueIndex].status = IssueStatus.TODO;
+        availableFund -= amount;
+        issues[issueIndex].allocated =  amount;
+
+        bountiesContract.metaIssueBounty(signature, _issuers,
+            _approvers, _data, _deadline, _token, _tokenVersion, _nonce);
+
+    }
+
+
+ // A bounty will be created by funding it with the existing grant amount
+  function acceptIssue(uint issueIndex,
+    bytes memory signature,
+    address payable[] memory _issuers,
+    address[] memory _approvers,
+    string memory _data,
+    uint _deadline,
+    address _token,
+    uint _tokenVersion,
+    uint _depositAmount,
+    uint _nonce) onlyAdmin public payable {
+
+    uint amount = issues[issueIndex].amount;
+    require(issues[issueIndex].status == IssueStatus.BACKLOG);
+    require(availableFund >= amount, "Funds not available");
+
+
+    issues[issueIndex].status = IssueStatus.TODO;
+    availableFund -= amount;
+    issues[issueIndex].allocated =  amount;
+    bountiesContract.metaIssueAndContribute.value(amount)(signature, _issuers,
+      _approvers, _data, _deadline, _token, _tokenVersion, _depositAmount, _nonce);
+
+  }
+
+
+
+
 
 }
