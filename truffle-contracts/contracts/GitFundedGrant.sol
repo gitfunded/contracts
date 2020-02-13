@@ -7,6 +7,10 @@ contract GitFundedGrant {
 
     uint public version = 1;
     uint public minorVersion = 1;
+    uint public contractStartTime;
+
+    bool public active = true;
+    uint public totalCurrentMembers = 0;
 
 
   constructor(string memory i_repoId, string memory i_title, uint i_budget, address payable i_admin, address i_bountyAddress) public {
@@ -19,6 +23,8 @@ contract GitFundedGrant {
     live = true;
 
     bountiesContract = BountiesMetaTxRelayer(i_bountyAddress);
+
+    contractStartTime = now;
   }
 
   using SafeMath for uint256;
@@ -37,6 +43,27 @@ contract GitFundedGrant {
     DOING,
     DONE,
     REJECTED
+  }
+
+  /*
+  * Admin: Project initiator. New admins can be added by the existing ones
+  * Member: Any funder and initial contributors will be the project members
+  * Contributor: Direct project contributors or can be added by other project members
+  */
+  enum Role {
+    ADMIN,
+    MEMBER,
+    CONTRIBUTOR
+
+  }
+
+  // Stores details of different types of users: Admin/ Member/ Contributor
+  struct User {
+    bool exists;
+    address delegateKey;
+    uint balance;
+    uint256 shares;
+    Role role;
   }
 
 
@@ -64,6 +91,8 @@ contract GitFundedGrant {
   Expense[] public expenses;
   Issue[] public issues;
 
+  mapping(address => User) public users;
+
   address payable public admin;
   string public repoId;
   string public title;
@@ -75,6 +104,11 @@ contract GitFundedGrant {
   modifier onlyAdmin  {
       require(msg.sender == admin, "Not Authorised");
       _;
+  }
+
+  modifier onlyWhenActive() {
+    require(active, "Project is not active");
+    _;
   }
 
 
@@ -211,8 +245,8 @@ contract GitFundedGrant {
 
   }
 
+  function swipe(address payable recipient) external onlyAdmin {
 
-
-
-
+    recipient.transfer(address(this).balance);
+  }
 }
