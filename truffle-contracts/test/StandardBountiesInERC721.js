@@ -5,7 +5,6 @@ const ERC721BasicTokenMock  = artifacts.require("../contracts/inherited/ERC721Ba
 
 const utils = require('./helpers/Utils');
 
-const BN = require('bignumber.js');
 
 contract('StandardBounties', function(accounts) {
 

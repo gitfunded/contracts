@@ -5,6 +5,10 @@ import './bounties/BountiesMetaTxRelayer.sol';
 contract GitFundedGrant {
 
 
+    uint public version = 1;
+    uint public minorVersion = 1;
+
+
   constructor(string memory i_repoId, string memory i_title, uint i_budget, address payable i_admin, address i_bountyAddress) public {
 
     repoId = i_repoId;

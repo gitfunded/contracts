@@ -4,8 +4,6 @@ const BountiesMetaTxRelayer = artifacts.require("../contracts/BountiesMetaTxRela
 
 const utils = require("./helpers/Utils");
 
-const BN = require("bignumber.js");
-
 contract("BountiesMetaTxRelayer", function(accounts) {
   it("[ETH][META] Verifies that the Meta Txn Relayer deployment works", async () => {
     let registry = await StandardBounties.new();

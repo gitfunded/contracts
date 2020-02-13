@@ -3,7 +3,6 @@ const HumanStandardToken = artifacts.require("../contracts/inherited/HumanStanda
 
 const utils = require('./helpers/Utils');
 
-const BN = require('bignumber.js');
 
 contract('StandardBounties', function(accounts) {
 
