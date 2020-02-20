@@ -1,6 +1,7 @@
 pragma solidity >=0.5.0 < 0.6.0;
-import './SafeMath.sol';
+import "./dao/oz/SafeMath.sol";
 import './bounties/BountiesMetaTxRelayer.sol';
+import './dao/Moloch.sol';
 
 contract GitFundedGrant {
 
@@ -13,7 +14,8 @@ contract GitFundedGrant {
     uint public totalCurrentMembers = 0;
 
 
-  constructor(string memory i_repoId, string memory i_title, uint i_budget, address payable i_admin, address i_bountyAddress) public {
+  constructor(string memory i_repoId, string memory i_title, uint i_budget, address payable i_admin, address i_bountyAddress, address i_tokenAddress)
+  public {
 
     repoId = i_repoId;
     title = i_title;
@@ -23,8 +25,10 @@ contract GitFundedGrant {
     live = true;
 
     bountiesContract = BountiesMetaTxRelayer(i_bountyAddress);
+    tokenAddress = tokenAddress;
 
     contractStartTime = now;
+
   }
 
   using SafeMath for uint256;
@@ -100,6 +104,7 @@ contract GitFundedGrant {
   uint availableFund; // In Ether
   bool live;
   BountiesMetaTxRelayer public bountiesContract;
+  address tokenAddress;
 
   modifier onlyAdmin  {
       require(msg.sender == admin, "Not Authorised");

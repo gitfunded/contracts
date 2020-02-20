@@ -38,10 +38,27 @@ async function forceMine () {
 
 
 
-contract('GitFundedGrant', (accounts) => {
+contract('DAOContract', (accounts) => {
     let moloch, guildBank, tokenAlpha, submitter;
 
-  const summoner = accounts[0];
+    let proposal1, proposal2, depositToken, snapshotId;
+
+    const initSummonerBalance = 100;
+
+    const firstProposalIndex = 0;
+    const secondProposalIndex = 1;
+    const thirdProposalIndex = 2;
+    const invalidPropsalIndex = 123;
+
+    const yes = 1;
+    const no = 2;
+
+    const standardShareRequest = 100;
+    const standardLootRequest = 73;
+    const standardTribute = 80;
+    const summonerShares = 1;
+
+    const summoner = accounts[0];
 
   before(async () => {
       tokenAlpha = await Token.new(deploymentConfig.TOKEN_SUPPLY);
@@ -61,35 +78,47 @@ contract('GitFundedGrant', (accounts) => {
 
       const guildBankAddress = await moloch.guildBank();
       guildBank = await GuildBank.at(guildBankAddress);
-      async function blockTime () {
-          const block = await web3.eth.getBlock('latest')
-          return block.timestamp
-      }
 
-      async function snapshot () {
-          return ethereum.send('evm_snapshot', [])
-      }
+      const proposalCount = await moloch.proposalCount();
+      console.log(proposalCount);
 
-      async function restore (snapshotId) {
-          return ethereum.send('evm_revert', [snapshotId])
-      }
 
-      async function forceMine () {
-          return ethereum.send('evm_mine', [])
-      }
+      const depositTokenAddress = await moloch.depositToken();
+      assert.equal(depositTokenAddress, tokenAlpha.address);
 
-      console.log(await guildBank.owner());
+      submitter = await Submitter.new(moloch.address);
 
   });
 
-  beforeEach(async () => {
+    beforeEach(async () => {
 
+        proposal1 = {
+            applicant: accounts[1],
+            sharesRequested: standardShareRequest,
+            lootRequested: standardLootRequest,
+            tributeOffered: standardTribute,
+            tributeToken: tokenAlpha.address,
+            paymentRequested: 0,
+            paymentToken: tokenAlpha.address,
+            details: 'all hail moloch'
+        };
 
-    });
+        proposal2 = {
+            applicant: accounts[2],
+            sharesRequested: 50,
+            lootRequested: 25,
+            tributeOffered: 50,
+            tributeToken: tokenAlpha.address,
+            paymentRequested: 0,
+            paymentToken: tokenAlpha.address,
+            details: 'all hail moloch 2'
+        };
 
-  describe('deployment', async () => {
+        tokenAlpha.transfer(summoner, initSummonerBalance, { from: accounts[1] })
+    })
+
+  describe('constructor',  () => {
     it('deploys successfully', async () => {
-
 
     });
 

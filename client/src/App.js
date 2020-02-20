@@ -146,14 +146,7 @@ class App extends React.Component {
 
                 </Button>}
 
-
-
-
-
-
             </div>
-
-
 
         </Modal>
       );
