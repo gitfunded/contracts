@@ -200,7 +200,7 @@ contract GitFundedGrant {
     uint _nonce) onlyAdmin public payable {
 
     uint amount = issues[issueIndex].amount;
-    require(issues[issueIndex].status == IssueStatus.BACKLOG);
+    require(issues[issueIndex].status == IssueStatus.BACKLOG, "Project is not in backlog");
     require(availableFund >= amount, "Funds not available");
 
 
@@ -216,22 +216,13 @@ contract GitFundedGrant {
     uint issueIndex,
     bytes memory _signature,
     uint _amount,
-    uint _nonce) public{
+    uint _nonce) public {
 
       uint _bountyId=issues[issueIndex].bountyId;
-      // require(issues[issueIndex].status == IssueStatus.TODO);
+
+      require(issues[issueIndex].status == IssueStatus.TODO);
       issues[issueIndex].allocated +=  _amount;      
       bountiesContract.metaContribute.value(_amount)(_signature,_bountyId,_amount,_nonce);
 
-
-
-
    }
-
-  
-
-
-
-
-
 }

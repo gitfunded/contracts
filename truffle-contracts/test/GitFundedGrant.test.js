@@ -180,7 +180,7 @@ contract('GitFundedGrant', (accounts) => {
 
         });
 
-        it('issue with funds accepted successfully', async () => {
+         it('issue with funds accepted successfully', async () => {
 
             let issueFundRecipient = accounts[3];
             let totalIssues = await projectInstance.getIssuesCount();
@@ -193,101 +193,52 @@ contract('GitFundedGrant', (accounts) => {
 
             const nonce = web3.utils.hexToNumber(latestNonce);
 
-            const params = [
-                ["address", "string", "address[]", "address[]", "string", "uint", "address", "uint", "uint", "uint"],
-                [
-                    web3.utils.toChecksumAddress(BountiesRelayerContract.address),
-                    "metaIssueAndContribute",
-                    [accounts[3]],
-                    [accounts[3]],
-                    "data",
-                    2528821098,
-                    "0x0000000000000000000000000000000000000000",
-                    0,
-                    1,
-                    nonce
-                ]
-            ];
+             const params = [
+                 ["address", "string", "address[]", "address[]", "string", "uint", "address", "uint", "uint", "uint"],
+                 [
+                     web3.utils.toChecksumAddress(BountiesRelayerContract.address),
+                     "metaIssueAndContribute",
+                     [accounts[3]],
+                     [accounts[3]],
+                     "data",
+                     2528821098,
+                     "0x0000000000000000000000000000000000000000",
+                     0,
+                     1,
+                     nonce
+                 ]
+             ];
 
             let paramsHash = web3.utils.keccak256(web3.eth.abi.encodeParameters(...params));
 
             let signature = await web3.eth.sign(paramsHash, accounts[3]);
 
             await projectInstance.fundProject({from: accounts[0], value: web3.utils.toWei("1", "ether")});
-            await projectInstance.addIssue('testIssue3', web3.utils.toWei("1", "ether"), {from: issueFundRecipient});
 
-            await projectInstance.acceptIssue(await projectInstance.getIssuesCount() - 1,
-                signature,
-                [accounts[3]],
-                [accounts[3]],
-                "data",
-                2528821098,
-                "0x0000000000000000000000000000000000000000",
-                0,
-                web3.utils.toWei("1", "ether"),
-                nonce);
+            let totalBounties = await StandardBountiesContract.numBounties();
+            await projectInstance.addIssue('testIssue4', web3.utils.toWei("1", "ether"), {from: issueFundRecipient});
 
-            assert.equal(await projectInstance.getIssuesCount(), parseInt(totalIssues) + 1);
-
-            const bounty = await StandardBountiesContract.getBounty(0);
-            assert(bounty != null, 'No bounty was created via the meta tx relayer');
-            assert(bounty.issuers[0] === accounts[3], 'Bounty issuer not the same account who signed the meta tx');
-
-        });
-         it('funds added successfully', async () => {
-
-            let issueFundRecipient = accounts[3];
-            let totalIssues = await projectInstance.getIssuesCount();
-
-            const registryOwner = await StandardBountiesContract.owner.call();
-
-            assert(registryOwner === accounts[0]);
-
-            const latestNonce = await BountiesRelayerContract.replayNonce.call(accounts[0]);
-
-            const nonce = web3.utils.hexToNumber(latestNonce);
-
-            const params = [
-                ["address", "string", "address[]", "address[]", "string", "uint", "address", "uint", "uint", "uint"],
-                [
-                    web3.utils.toChecksumAddress(BountiesRelayerContract.address),
-                    "metaIssueAndContribute",
-                    [accounts[3]],
-                    [accounts[3]],
-                    "data",
-                    2528821098,
-                    "0x0000000000000000000000000000000000000000",
-                    0,
-                    1,
-                    nonce
-                ]
-            ];
-
-            let paramsHash = web3.utils.keccak256(web3.eth.abi.encodeParameters(...params));
-
-            let signature = await web3.eth.sign(paramsHash, accounts[3]);
-
-            await projectInstance.fundProject({from: accounts[0], value: web3.utils.toWei("1", "ether")});
-            await projectInstance.addIssue('testIssue3', web3.utils.toWei("1", "ether"), {from: issueFundRecipient});
-
-            // await projectInstance.acceptIssue(await projectInstance.getIssuesCount() - 1,
-            //     signature,
-            //     [accounts[3]],
-            //     [accounts[3]],
-            //     "data",
-            //     2528821098,
-            //     "0x0000000000000000000000000000000000000000",
-            //     0,
-            //     web3.utils.toWei("1", "ether"),
-            //     nonce);z
+             await projectInstance.acceptIssue(await projectInstance.getIssuesCount() - 1,
+                 signature,
+                 [accounts[3]],
+                 [accounts[3]],
+                 "data",
+                 2528821098,
+                 "0x0000000000000000000000000000000000000000",
+                 0,
+                 web3.utils.toWei("1", "ether"),
+                 nonce);
             await projectInstance.fundIssue(await projectInstance.getIssuesCount() - 1,
                 signature,
                 web3.utils.toWei("1", "ether"),
                 nonce);
-            assert.equal(await projectInstance.getIssuesCount(), parseInt(totalIssues) + 1);
 
-            const bounty = await StandardBountiesContract.getBounty(0);
-            assert(bounty != null, 'No bounty was created via the meta tx relayer');
+
+            const bounty = await StandardBountiesContract.getBounty(totalBounties);
+
+            assert.equal(await projectInstance.getIssuesCount(), parseInt(totalIssues) + 1);
+            assert.equal(bounty.contributions.length, 2); // 2 contributions - 1 when creating the bounty and 1 during the fundIssue call
+            assert(bounty !== [], 'No bounty was created via the meta tx relayer');
             assert(bounty.issuers[0] === accounts[3], 'Bounty issuer not the same account who signed the meta tx');
 
         });
