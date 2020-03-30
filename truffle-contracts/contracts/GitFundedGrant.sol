@@ -1,9 +1,9 @@
 pragma solidity >=0.5.0 < 0.6.0;
 import "./dao/oz/SafeMath.sol";
 import './bounties/BountiesMetaTxRelayer.sol';
-import './dao/Moloch.sol';
+import './dao/Governance.sol';
 
-contract GitFundedGrant {
+contract GitFundedGrant is Governance {
 
 
     uint public version = 1;
@@ -15,7 +15,9 @@ contract GitFundedGrant {
 
 
   constructor(string memory i_repoId, string memory i_title, uint i_budget, address payable i_admin, address i_bountyAddress, address i_tokenAddress)
-  public {
+  public
+  Governance(i_admin, [i_tokenAddress], 17280, 35, 35, 35, 70, 10, 3, 1)
+  {
 
     repoId = i_repoId;
     title = i_title;

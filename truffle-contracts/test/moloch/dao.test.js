@@ -1,3 +1,8 @@
+const GitFundedGrant = artifacts.require('./GitFundedGrant.sol');
+const GitFundedGrantFactory = artifacts.require('./GitFundedGrantFactory.sol');
+const StandardBounties = artifacts.require('./bounties/StandardBounties.sol');
+const BountiesMetaTxRelayer = artifacts.require('./bounties/BountiesMetaTxRelayer.sol');
+
 const Moloch = artifacts.require('./dao/Moloch');
 const GuildBank = artifacts.require('./dao/GuildBank');
 const Token = artifacts.require('./dao/Token');
@@ -41,6 +46,10 @@ async function forceMine () {
 contract('DAOContract', (accounts) => {
     let moloch, guildBank, tokenAlpha, submitter;
 
+    let contract, projectInstance, StandardBountiesContract, BountiesRelayerContract;
+
+    const account_a = accounts[0];
+
     let proposal1, proposal2, depositToken, snapshotId;
 
     const initSummonerBalance = 100;
@@ -63,30 +72,30 @@ contract('DAOContract', (accounts) => {
   before(async () => {
       tokenAlpha = await Token.new(deploymentConfig.TOKEN_SUPPLY);
 
-      moloch = await Moloch.new(
-          summoner,
-          [tokenAlpha.address],
-          deploymentConfig.PERIOD_DURATION_IN_SECONDS,
-          deploymentConfig.VOTING_DURATON_IN_PERIODS,
-          deploymentConfig.GRACE_DURATON_IN_PERIODS,
-          deploymentConfig.EMERGENCY_PROCESSING_WAIT_IN_PERIODS,
-          deploymentConfig.BAILOUT_WAIT_IN_PERIODS,
-          deploymentConfig.PROPOSAL_DEPOSIT,
-          deploymentConfig.DILUTION_BOUND,
-          deploymentConfig.PROCESSING_REWARD,
-      );
+      // moloch = await Moloch.new(
+      //     summoner,
+      //     [tokenAlpha.address],
+      //     deploymentConfig.PERIOD_DURATION_IN_SECONDS,
+      //     deploymentConfig.VOTING_DURATON_IN_PERIODS,
+      //     deploymentConfig.GRACE_DURATON_IN_PERIODS,
+      //     deploymentConfig.EMERGENCY_PROCESSING_WAIT_IN_PERIODS,
+      //     deploymentConfig.BAILOUT_WAIT_IN_PERIODS,
+      //     deploymentConfig.PROPOSAL_DEPOSIT,
+      //     deploymentConfig.DILUTION_BOUND,
+      //     deploymentConfig.PROCESSING_REWARD,
+      // );
 
-      const guildBankAddress = await moloch.guildBank();
-      guildBank = await GuildBank.at(guildBankAddress);
+      contract = await GitFundedGrantFactory.deployed();
+      StandardBountiesContract = await StandardBounties.deployed();
+      BountiesRelayerContract = await BountiesMetaTxRelayer.deployed();
 
-      const proposalCount = await moloch.proposalCount();
-      console.log(proposalCount);
+      // const guildBankAddress = await moloch.guildBank();
+      // guildBank = await GuildBank.at(guildBankAddress);
+      //
+      // const proposalCount = await moloch.proposalCount();
+      // console.log(proposalCount);
 
 
-      const depositTokenAddress = await moloch.depositToken();
-      assert.equal(depositTokenAddress, tokenAlpha.address);
-
-      submitter = await Submitter.new(moloch.address);
 
   });
 
@@ -114,11 +123,26 @@ contract('DAOContract', (accounts) => {
             details: 'all hail moloch 2'
         };
 
-        tokenAlpha.transfer(summoner, initSummonerBalance, { from: accounts[1] })
-    })
+        // tokenAlpha.transfer(summoner, initSummonerBalance, { from: accounts[1] });
+
+        await contract.newProject(
+            'testRepo1',
+            'testRepo title',
+            1000,
+            {from: accounts[0]}
+        );
+
+        const contractAddress = await contract.getContractAddress.call({from: account_a});
+        projectInstance = await GitFundedGrant.at(contractAddress[0]);
+    });
 
   describe('constructor',  () => {
     it('deploys successfully', async () => {
+
+        console.log(await projectInstance.getExpensesCount());
+        console.log(await projectInstance.proposalCount());
+
+
 
     });
 
