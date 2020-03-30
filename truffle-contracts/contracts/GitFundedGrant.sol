@@ -56,6 +56,7 @@ contract GitFundedGrant {
     string title;
     uint amount; // In Ether
     uint allocated; // In Ether
+    uint bountyId;
     address payable recipient;
     IssueStatus status;
   }
@@ -156,7 +157,7 @@ contract GitFundedGrant {
   //TODO: Modify the Issue struct to store more bounty details
     function addIssue(string memory _title, uint _amount) public {
 
-        Issue memory issue = Issue(_title, _amount, 0, msg.sender, IssueStatus.BACKLOG);
+        Issue memory issue = Issue(_title, _amount, 0, 0, msg.sender, IssueStatus.BACKLOG);
         issues.push(issue);
 
     }
@@ -180,7 +181,7 @@ contract GitFundedGrant {
         availableFund -= amount;
         issues[issueIndex].allocated =  amount;
 
-        bountiesContract.metaIssueBounty(signature, _issuers,
+        issues[issueIndex].bountyId=bountiesContract.metaIssueBounty(signature, _issuers,
             _approvers, _data, _deadline, _token, _tokenVersion, _nonce);
 
     }
@@ -199,20 +200,29 @@ contract GitFundedGrant {
     uint _nonce) onlyAdmin public payable {
 
     uint amount = issues[issueIndex].amount;
-    require(issues[issueIndex].status == IssueStatus.BACKLOG);
+    require(issues[issueIndex].status == IssueStatus.BACKLOG, "Project is not in backlog");
     require(availableFund >= amount, "Funds not available");
 
 
     issues[issueIndex].status = IssueStatus.TODO;
     availableFund -= amount;
     issues[issueIndex].allocated =  amount;
-    bountiesContract.metaIssueAndContribute.value(amount)(signature, _issuers,
+    issues[issueIndex].bountyId=bountiesContract.metaIssueAndContribute.value(amount)(signature, _issuers,
       _approvers, _data, _deadline, _token, _tokenVersion, _depositAmount, _nonce);
 
   }
 
+ function fundIssue(
+    uint issueIndex,
+    bytes memory _signature,
+    uint _amount,
+    uint _nonce) public {
 
+      uint _bountyId=issues[issueIndex].bountyId;
 
+      require(issues[issueIndex].status == IssueStatus.TODO);
+      issues[issueIndex].allocated +=  _amount;      
+      bountiesContract.metaContribute.value(_amount)(_signature,_bountyId,_amount,_nonce);
 
-
+   }
 }
