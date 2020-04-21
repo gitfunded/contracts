@@ -20,7 +20,8 @@ contract MolochSummoner {
         uint256 _bailoutWait,
         uint256 _proposalDeposit,
         uint256 _dilutionBound,
-        uint256 _processingReward) public {
+        uint256 _processingReward
+        ) public {
 
         M = new Moloch(
             _summoner,
@@ -32,7 +33,8 @@ contract MolochSummoner {
             _bailoutWait,
             _proposalDeposit,
             _dilutionBound,
-            _processingReward);
+            _processingReward
+            );
 
         Molochs.push(address(M));
 
