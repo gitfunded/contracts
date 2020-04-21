@@ -38,27 +38,27 @@ contract Submitter {
     emit Submit(proposalId);
   }
 
-  function submitWhitelistProposal(
-    address tokenToWhitelist,
-    string memory details
-  ) public {
-    uint256 proposalId = moloch.submitWhitelistProposal(
-      tokenToWhitelist,
-      details
-    );
+  // function submitWhitelistProposal(
+  //   address tokenToWhitelist,
+  //   string memory details
+  // ) public {
+  //   uint256 proposalId = moloch.submitWhitelistProposal(
+  //     tokenToWhitelist,
+  //     details
+  //   );
 
-    emit Submit(proposalId);
-  }
+  //   emit Submit(proposalId);
+  // }
 
-  function submitGuildKickProposal(
-    address memberToKick,
-    string memory details
-  ) public {
-    uint256 proposalId = moloch.submitGuildKickProposal(
-      memberToKick,
-      details
-    );
+  // function submitGuildKickProposal(
+  //   address memberToKick,
+  //   string memory details
+  // ) public {
+  //   uint256 proposalId = moloch.submitGuildKickProposal(
+  //     memberToKick,
+  //     details
+  //   );
 
-    emit Submit(proposalId);
-  }
+  //   emit Submit(proposalId);
+  // }
 }
