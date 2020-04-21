@@ -46,7 +46,7 @@ async function forceMine () {
 contract('DAOContract', (accounts) => {
     let moloch, guildBank, tokenAlpha, submitter;
 
-    let contract, projectInstance, StandardBountiesContract, BountiesRelayerContract;
+    let contract, projectInstance, StandardBountiesContract, BountiesRelayerContract,abcd,abcd1;
 
     const account_a = accounts[0];
 
@@ -72,28 +72,28 @@ contract('DAOContract', (accounts) => {
   before(async () => {
       tokenAlpha = await Token.new(deploymentConfig.TOKEN_SUPPLY);
 
-      // moloch = await Moloch.new(
-      //     summoner,
-      //     [tokenAlpha.address],
-      //     deploymentConfig.PERIOD_DURATION_IN_SECONDS,
-      //     deploymentConfig.VOTING_DURATON_IN_PERIODS,
-      //     deploymentConfig.GRACE_DURATON_IN_PERIODS,
-      //     deploymentConfig.EMERGENCY_PROCESSING_WAIT_IN_PERIODS,
-      //     deploymentConfig.BAILOUT_WAIT_IN_PERIODS,
-      //     deploymentConfig.PROPOSAL_DEPOSIT,
-      //     deploymentConfig.DILUTION_BOUND,
-      //     deploymentConfig.PROCESSING_REWARD,
-      // );
+      moloch = await Moloch.new(
+          summoner,
+          [tokenAlpha.address],
+          deploymentConfig.PERIOD_DURATION_IN_SECONDS,
+          deploymentConfig.VOTING_DURATON_IN_PERIODS,
+          deploymentConfig.GRACE_DURATON_IN_PERIODS,
+          deploymentConfig.EMERGENCY_PROCESSING_WAIT_IN_PERIODS,
+          deploymentConfig.BAILOUT_WAIT_IN_PERIODS,
+          deploymentConfig.PROPOSAL_DEPOSIT,
+          deploymentConfig.DILUTION_BOUND,
+          deploymentConfig.PROCESSING_REWARD,
+      );
 
       contract = await GitFundedGrantFactory.deployed();
       StandardBountiesContract = await StandardBounties.deployed();
       BountiesRelayerContract = await BountiesMetaTxRelayer.deployed();
 
-      // const guildBankAddress = await moloch.guildBank();
-      // guildBank = await GuildBank.at(guildBankAddress);
-      //
-      // const proposalCount = await moloch.proposalCount();
-      // console.log(proposalCount);
+      const guildBankAddress = await moloch.guildBank();
+      guildBank = await GuildBank.at(guildBankAddress);
+      
+      const proposalCount = await moloch.proposalCount();
+      console.log(proposalCount);
 
 
 
@@ -104,7 +104,7 @@ contract('DAOContract', (accounts) => {
         proposal1 = {
             applicant: accounts[1],
             sharesRequested: standardShareRequest,
-            lootRequested: standardLootRequest,
+            //lootRequested: standardLootRequest,
             tributeOffered: standardTribute,
             tributeToken: tokenAlpha.address,
             paymentRequested: 0,
@@ -115,7 +115,7 @@ contract('DAOContract', (accounts) => {
         proposal2 = {
             applicant: accounts[2],
             sharesRequested: 50,
-            lootRequested: 25,
+            //lootRequested: 25,
             tributeOffered: 50,
             tributeToken: tokenAlpha.address,
             paymentRequested: 0,
@@ -134,6 +134,11 @@ contract('DAOContract', (accounts) => {
 
         const contractAddress = await contract.getContractAddress.call({from: account_a});
         projectInstance = await GitFundedGrant.at(contractAddress[0]);
+
+        // abcd1=await Moloch.deployed();
+        // const contractAddress1=await abcd1.getContractAddress.call({from: account_a});
+        // abcd=await Moloch.at(contractAddress1[0]);
+
     });
 
   describe('constructor',  () => {
@@ -144,6 +149,41 @@ contract('DAOContract', (accounts) => {
 
 
 
+    });
+    // it('deploys successfully Moloch', async () => {
+
+    //     console.log(await projectInstance.getProposalQueueLength());
+    //     //console.log(await projectInstance.proposalCount());
+    // });
+    it('check submit proposal', async () => {
+        let bef=await projectInstance.getProposal();
+        await projectInstance.submitProposal(accounts[1],10,20,40,tokenAlpha.address,20,tokenAlpha.address,"112");
+        await projectInstance.submitProposal(accounts[1],10,20,40,tokenAlpha.address,20,tokenAlpha.address,"112");
+        let aft=await projectInstance.getProposal();
+        assert.equal(parseInt(bef),parseInt(aft)-2);
+    });
+        it('check sponsor proposal', async () => {
+        let bef=await projectInstance.getProposal();
+        await projectInstance.submitProposal(accounts[1],10,20,40,tokenAlpha.address,20,tokenAlpha.address,"112");
+        await projectInstance.sponsorProposal(bef);
+        let aft=await projectInstance.getProposal();
+        let ajk=await projectInstance.getProposalQueueLength();
+        assert.equal(parseInt(bef),parseInt(aft)-1);
+        assert.equal(parseInt(ajk),1);
+    });
+        it('check vote and process proposal', async () => {
+        let bef=await projectInstance.getProposal();
+        let bjk=await projectInstance.getProposalQueueLength();
+        await projectInstance.submitProposal(accounts[1],10,20,40,tokenAlpha.address,20,tokenAlpha.address,"112");
+        await projectInstance.sponsorProposal(bef);
+        let aft=await projectInstance.getProposal();
+        let ajk=await projectInstance.getProposalQueueLength();
+        await projectInstance.submitVote(0,2);
+        await projectInstance.processProposal(0);
+        let res=await projectInstance.getResult();
+        assert.equal(parseInt(res),2);
+        assert.equal(parseInt(bef),parseInt(aft)-1);
+        assert.equal(parseInt(ajk),parseInt(bjk)+1);
     });
 
   });
