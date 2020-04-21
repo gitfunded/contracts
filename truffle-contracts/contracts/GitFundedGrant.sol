@@ -81,6 +81,7 @@ contract GitFundedGrant is Governance {
     uint allocated; // In Ether
     address payable recipient;
     ExpenseStatus status;
+    uint proposalIndex;
   }
 
   // New issue structure
@@ -128,15 +129,29 @@ contract GitFundedGrant is Governance {
     return (repoId, title, budget, availableFund, admin);
   }
 
+        // address applicant,
+        // uint256 sharesRequested,
+        // uint256 lootRequested,
+        // uint256 tributeOffered,
+        // address tributeToken,
+        // uint256 paymentRequested,
+        // address paymentToken,
+        // string memory details
+  function addExpense(string memory _title, uint _amount, address applicant, uint sharesRequested, uint lootRequested, uint tributeOffered,
+                      address tributeToken, uint paymentRequested, address paymentToken, string memory details) public {
 
-  function addExpense(string memory _title, uint _amount) public {
-
-    Expense memory expense = Expense(_title, _amount, 0, msg.sender, ExpenseStatus.PENDING);
+    Expense memory expense = Expense(_title, _amount, 0, msg.sender, ExpenseStatus.PENDING,0);
     expenses.push(expense);
+    submitProposal(applicant,sharesRequested,lootRequested,tributeOffered,tributeToken,paymentRequested,paymentToken,details);
 
   }
 
   function acceptExpense(uint expenseIndex) onlyAdmin public {
+
+    uint index=expenses[expenseIndex].proposalIndex;
+    Proposal storage proposal = proposals[proposalQueue[index]];
+    require (proposal.flags[2]==true,"Proposal not passed");
+    
 
     uint amount = expenses[expenseIndex].amount;
     require(expenses[expenseIndex].status == ExpenseStatus.PENDING);
@@ -149,6 +164,10 @@ contract GitFundedGrant is Governance {
     expenses[expenseIndex].recipient.transfer(amount);
 
   }
+  function sponsorExpense (uint expenseIndex) public {
+    expenses[expenseIndex].proposalIndex =  sponsorProposal(expenseIndex);
+  }
+  
 
   // TODO: Merge this logic with the acceptExpense by overloading the function
   function acceptPartialExpense(uint expenseIndex, uint amount) onlyAdmin public {
@@ -256,4 +275,4 @@ contract GitFundedGrant is Governance {
 
     recipient.transfer(address(this).balance);
   }
-}
+ }
