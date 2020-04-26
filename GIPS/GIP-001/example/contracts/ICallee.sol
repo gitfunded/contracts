@@ -1,8 +1,8 @@
 pragma solidity >0.5.0<=0.7.0;
 
-abstract contract ICallee {
+interface ICallee {
 
-  function storeValue(uint) virtual external;
-  function getValues() virtual external returns(uint);
+  function storeValue(uint value) external;
+  function getValues() external view returns(uint);
 }
 

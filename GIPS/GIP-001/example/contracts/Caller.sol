@@ -20,7 +20,7 @@ contract Caller {
     c.storeValue(100);
   }
 
-  function get() public returns(uint)  {
+  function get() public view returns(uint)  {
 
     uint values = c.getValues();
     return uint(values);
