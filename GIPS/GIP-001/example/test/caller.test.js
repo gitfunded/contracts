@@ -29,7 +29,15 @@ contract('CallerTests', (accounts) => {
     describe('caller invoke', async () => {
         it('get value', async () => {
 
-            let r_value = await callerInstance.get();
+            let r_value = parseInt(await callerInstance.get());
+            assert.equal(r_value, 0);
+
+        });
+        it('set value', async () => {
+
+            await callerInstance.store();
+            let r_value = parseInt(await callerInstance.get());
+            assert.equal(r_value, 1);
 
         });
     });
