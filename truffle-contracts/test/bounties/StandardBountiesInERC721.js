@@ -3,7 +3,7 @@ const HumanStandardToken = artifacts.require("../contracts/inherited/HumanStanda
 const ERC721BasicTokenMock  = artifacts.require("../contracts/inherited/ERC721BasicTokenMock");
 
 
-const utils = require('./helpers/Utils');
+const utils = require('../helpers/Utils');
 
 
 contract('StandardBounties', function(accounts) {
