@@ -90,6 +90,7 @@ contract GitFundedGrant is Governance {
     string title;
     uint amount; // In Ether
     uint allocated; // In Ether
+    uint bountyId;
     address payable recipient;
     IssueStatus status;
   }
@@ -151,7 +152,7 @@ contract GitFundedGrant is Governance {
     uint index=expenses[expenseIndex].proposalIndex;
     Proposal storage proposal = proposals[proposalQueue[index]];
     require (proposal.flags[2]==true,"Proposal not passed");
-    
+
 
     uint amount = expenses[expenseIndex].amount;
     require(expenses[expenseIndex].status == ExpenseStatus.PENDING);
@@ -167,7 +168,7 @@ contract GitFundedGrant is Governance {
   function sponsorExpense (uint expenseIndex) public {
     expenses[expenseIndex].proposalIndex =  sponsorProposal(expenseIndex);
   }
-  
+
 
   // TODO: Merge this logic with the acceptExpense by overloading the function
   function acceptPartialExpense(uint expenseIndex, uint amount) onlyAdmin public {
@@ -216,7 +217,7 @@ contract GitFundedGrant is Governance {
   //TODO: Modify the Issue struct to store more bounty details
     function addIssue(string memory _title, uint _amount) public {
 
-        Issue memory issue = Issue(_title, _amount, 0, msg.sender, IssueStatus.BACKLOG);
+        Issue memory issue = Issue(_title, _amount, 0, 0, msg.sender, IssueStatus.BACKLOG);
         issues.push(issue);
 
     }
@@ -240,7 +241,7 @@ contract GitFundedGrant is Governance {
         availableFund -= amount;
         issues[issueIndex].allocated =  amount;
 
-        bountiesContract.metaIssueBounty(signature, _issuers,
+        issues[issueIndex].bountyId=bountiesContract.metaIssueBounty(signature, _issuers,
             _approvers, _data, _deadline, _token, _tokenVersion, _nonce);
 
     }
@@ -259,14 +260,14 @@ contract GitFundedGrant is Governance {
     uint _nonce) onlyAdmin public payable {
 
     uint amount = issues[issueIndex].amount;
-    require(issues[issueIndex].status == IssueStatus.BACKLOG);
+    require(issues[issueIndex].status == IssueStatus.BACKLOG, "Project is not in backlog");
     require(availableFund >= amount, "Funds not available");
 
 
     issues[issueIndex].status = IssueStatus.TODO;
     availableFund -= amount;
     issues[issueIndex].allocated =  amount;
-    bountiesContract.metaIssueAndContribute.value(amount)(signature, _issuers,
+    issues[issueIndex].bountyId=bountiesContract.metaIssueAndContribute.value(amount)(signature, _issuers,
       _approvers, _data, _deadline, _token, _tokenVersion, _depositAmount, _nonce);
 
   }
@@ -275,4 +276,19 @@ contract GitFundedGrant is Governance {
 
     recipient.transfer(address(this).balance);
   }
- }
+
+
+ function fundIssue(
+    uint issueIndex,
+    bytes memory _signature,
+    uint _amount,
+    uint _nonce) public {
+
+      uint _bountyId=issues[issueIndex].bountyId;
+
+      require(issues[issueIndex].status == IssueStatus.TODO);
+      issues[issueIndex].allocated +=  _amount;
+      bountiesContract.metaContribute.value(_amount)(_signature,_bountyId,_amount,_nonce);
+
+   }
+}
