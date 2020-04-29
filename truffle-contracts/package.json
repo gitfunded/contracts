@@ -10,6 +10,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "@nomiclabs/buidler": "^1.0.1",
     "chai": "4.2.0",
     "chai-as-promised": "7.1.1",
     "chai-bignumber": "3.0.0",

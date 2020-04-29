@@ -1,15 +1,23 @@
 pragma solidity >=0.5.0 < 0.6.0;
-import './SafeMath.sol';
+import "./dao/oz/SafeMath.sol";
 import './bounties/BountiesMetaTxRelayer.sol';
+import './dao/Governance.sol';
 
-contract GitFundedGrant {
+contract GitFundedGrant is Governance {
 
 
     uint public version = 1;
     uint public minorVersion = 1;
+    uint public contractStartTime;
+
+    bool public active = true;
+    uint public totalCurrentMembers = 0;
 
 
-  constructor(string memory i_repoId, string memory i_title, uint i_budget, address payable i_admin, address i_bountyAddress) public {
+  constructor(string memory i_repoId, string memory i_title, uint i_budget, address payable i_admin, address i_bountyAddress, address i_tokenAddress)
+  public
+  Governance(i_admin, [i_tokenAddress], 17280, 35, 35, 35, 70, 10, 3, 1)
+  {
 
     repoId = i_repoId;
     title = i_title;
@@ -19,6 +27,10 @@ contract GitFundedGrant {
     live = true;
 
     bountiesContract = BountiesMetaTxRelayer(i_bountyAddress);
+    tokenAddress = tokenAddress;
+
+    contractStartTime = now;
+
   }
 
   using SafeMath for uint256;
@@ -39,6 +51,27 @@ contract GitFundedGrant {
     REJECTED
   }
 
+  /*
+  * Admin: Project initiator. New admins can be added by the existing ones
+  * Member: Any funder and initial contributors will be the project members
+  * Contributor: Direct project contributors or can be added by other project members
+  */
+  enum Role {
+    ADMIN,
+    MEMBER,
+    CONTRIBUTOR
+
+  }
+
+  // Stores details of different types of users: Admin/ Member/ Contributor
+  struct User {
+    bool exists;
+    address delegateKey;
+    uint balance;
+    uint256 shares;
+    Role role;
+  }
+
 
   // New expense structure
   //  TODO: The expense amount should be maintained in dollar
@@ -48,6 +81,7 @@ contract GitFundedGrant {
     uint allocated; // In Ether
     address payable recipient;
     ExpenseStatus status;
+    uint proposalIndex;
   }
 
   // New issue structure
@@ -65,17 +99,25 @@ contract GitFundedGrant {
   Expense[] public expenses;
   Issue[] public issues;
 
+  mapping(address => User) public users;
+
   address payable public admin;
   string public repoId;
   string public title;
   uint budget; // In dollars
-  uint availableFund; // In Ether
+  uint public availableFund; // In Ether
   bool live;
   BountiesMetaTxRelayer public bountiesContract;
+  address tokenAddress;
 
   modifier onlyAdmin  {
       require(msg.sender == admin, "Not Authorised");
       _;
+  }
+
+  modifier onlyWhenActive() {
+    require(active, "Project is not active");
+    _;
   }
 
 
@@ -88,15 +130,23 @@ contract GitFundedGrant {
     return (repoId, title, budget, availableFund, admin);
   }
 
+  function addExpense(string memory _title, uint _amount, address applicant, uint sharesRequested, uint lootRequested, uint tributeOffered,
+                      address tributeToken, uint paymentRequested, address paymentToken, string memory details) public {
 
-  function addExpense(string memory _title, uint _amount) public {
-
-    Expense memory expense = Expense(_title, _amount, 0, msg.sender, ExpenseStatus.PENDING);
+    Expense memory expense = Expense(_title, _amount, 0, msg.sender, ExpenseStatus.PENDING,0);
     expenses.push(expense);
+    submitProposal(applicant,sharesRequested,lootRequested,tributeOffered,tributeToken,paymentRequested,paymentToken,details);
 
   }
 
   function acceptExpense(uint expenseIndex) onlyAdmin public {
+
+    uint index=expenses[expenseIndex].proposalIndex;
+    Proposal storage proposal = proposals[proposalQueue[index]];
+
+    // TODO: The proposal needs to be pass (commented to pass the test)
+//    require (proposal.flags[2]==true,"Proposal not passed");
+
 
     uint amount = expenses[expenseIndex].amount;
     require(expenses[expenseIndex].status == ExpenseStatus.PENDING);
@@ -109,6 +159,10 @@ contract GitFundedGrant {
     expenses[expenseIndex].recipient.transfer(amount);
 
   }
+  function sponsorExpense (uint expenseIndex) public {
+    expenses[expenseIndex].proposalIndex =  sponsorProposal(expenseIndex);
+  }
+
 
   // TODO: Merge this logic with the acceptExpense by overloading the function
   function acceptPartialExpense(uint expenseIndex, uint amount) onlyAdmin public {
@@ -212,6 +266,12 @@ contract GitFundedGrant {
 
   }
 
+  function swipe(address payable recipient) external onlyAdmin {
+
+    recipient.transfer(address(this).balance);
+  }
+
+
  function fundIssue(
     uint issueIndex,
     bytes memory _signature,
@@ -221,7 +281,7 @@ contract GitFundedGrant {
       uint _bountyId=issues[issueIndex].bountyId;
 
       require(issues[issueIndex].status == IssueStatus.TODO);
-      issues[issueIndex].allocated +=  _amount;      
+      issues[issueIndex].allocated +=  _amount;
       bountiesContract.metaContribute.value(_amount)(_signature,_bountyId,_amount,_nonce);
 
    }

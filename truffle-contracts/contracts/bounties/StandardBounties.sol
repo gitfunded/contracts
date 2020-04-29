@@ -7,7 +7,7 @@ import "./inherited/ERC721Basic.sol";
 
 /// @title StandardBounties
 /// @dev A contract for issuing bounties on Ethereum paying in ETH, ERC20, or ERC721 tokens
-/// @author Mark Beylin <mark.beylin@consensys.net>, Gonçalo Sá <goncalo.sa@consensys.net>, Kevin Owocki <kevin.owocki@consensys.net>, Ricardo Guilherme Schmidt (@3esmit), Matt Garnett <matt.garnett@consensys.net>, Craig Williams <craig.williams@consensys.net>
+/// @author Mark Beylifn <mark.beylin@consensys.net>, Gonçalo Sá <goncalo.sa@consensys.net>, Kevin Owocki <kevin.owocki@consensys.net>, Ricardo Guilherme Schmidt (@3esmit), Matt Garnett <matt.garnett@consensys.net>, Craig Williams <craig.williams@consensys.net>
 contract StandardBounties {
 
   using SafeMath for uint256;

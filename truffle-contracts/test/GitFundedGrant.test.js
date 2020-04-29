@@ -2,7 +2,8 @@ const GitFundedGrant = artifacts.require('./GitFundedGrant.sol');
 const GitFundedGrantFactory = artifacts.require('./GitFundedGrantFactory.sol');
 const StandardBounties = artifacts.require('./bounties/StandardBounties.sol');
 const BountiesMetaTxRelayer = artifacts.require('./bounties/BountiesMetaTxRelayer.sol');
-
+const Token = artifacts.require('./dao/Token');
+const TOKEN_SUPPLY=100;
 require('chai')
   .use(require('chai-as-promised'))
   .should();
@@ -16,6 +17,8 @@ contract('GitFundedGrant', (accounts) => {
     contract = await GitFundedGrantFactory.deployed();
     StandardBountiesContract = await StandardBounties.deployed();
     BountiesRelayerContract = await BountiesMetaTxRelayer.deployed();
+    tokenAlpha = await Token.new(TOKEN_SUPPLY);
+
 
   });
 
@@ -97,8 +100,8 @@ contract('GitFundedGrant', (accounts) => {
 
         it('expenses added successfully', async () => {
 
-            await projectInstance.addExpense('testExpense1', 50 );
-            await projectInstance.addExpense('testExpense2', 100 );
+            await projectInstance.addExpense('testExpense1', 50,accounts[1],10,20,40,tokenAlpha.address,20,tokenAlpha.address,"112" );
+            await projectInstance.addExpense('testExpense2', 100,accounts[1],10,20,40,tokenAlpha.address,20,tokenAlpha.address,"112" );
 
             let totalExpenses = await projectInstance.getExpensesCount();
             assert.equal(totalExpenses, 2)
@@ -109,13 +112,16 @@ contract('GitFundedGrant', (accounts) => {
             let expenseRecipient = accounts[3];
 
             await projectInstance.fundProject({from: accounts[0], value: web3.utils.toWei("2", "ether")});
-            await projectInstance.addExpense('testExpense3', web3.utils.toWei("1", "ether"), {from: expenseRecipient});
+            //await projectInstance.addExpense('testExpense3', web3.utils.toWei("1", "ether"), {from: expenseRecipient});
+            await projectInstance.addExpense('testExpense3', web3.utils.toWei("1", "ether"),accounts[1],10,20,40,
+                                              tokenAlpha.address,20,tokenAlpha.address,"112");
 
-            let initBalance = await web3.eth.getBalance(expenseRecipient);
+            await projectInstance.sponsorExpense(await projectInstance.getExpensesCount() - 1)
+            let initBalance = parseInt(await projectInstance.availableFund())
             await projectInstance.acceptExpense(await projectInstance.getExpensesCount() - 1);
 
-            assert.equal(parseInt(initBalance) + parseInt(web3.utils.toWei("1", "ether")),
-                await web3.eth.getBalance(expenseRecipient));
+            assert.equal(initBalance - parseInt(web3.utils.toWei("1", "ether")),
+                await parseInt(await projectInstance.availableFund()));
 
         });
 

@@ -12,7 +12,7 @@ import GitHub from "github-api";
 import {UserContext} from './Context';
 import Dashboard from "./components/dashboard";
 
-const { Content, Header } = Layout;
+const { Content, Footer, Header } = Layout;
 
 const CLIENT_ID = "69bc88033c4b1bc2b4dc";
 const REDIRECT_URI = "http://localhost:3000/";
@@ -146,14 +146,7 @@ class App extends React.Component {
 
                 </Button>}
 
-
-
-
-
-
             </div>
-
-
 
         </Modal>
       );
@@ -181,7 +174,7 @@ class App extends React.Component {
                                     background: "#fff",
                                     padding: 24,
                                     margin: "16px 0px 0px 0px",
-                                    minHeight: 280
+                                    height: 700
                                 }}>
                                     <Switch>
                                         <Route path="/" component={Dashboard} exact/>
@@ -191,6 +184,7 @@ class App extends React.Component {
                                         <Route component={PageNotFoundError}/>
                                     </Switch>
                                 </Content>
+                                <Footer style={{ textAlign: 'center' }}>Ant Design ©2018 Created by Ant UED</Footer>
                             </Layout>
                         </Layout>
                     </Layout>
