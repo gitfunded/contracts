@@ -107,23 +107,23 @@ contract('GitFundedGrant', (accounts) => {
             assert.equal(totalExpenses, 2)
         });
 
-        // it('expense accepted successfully', async () => {
+        it('expense accepted successfully', async () => {
 
-        //     let expenseRecipient = accounts[3];
+            let expenseRecipient = accounts[3];
 
-        //     await projectInstance.fundProject({from: accounts[0], value: web3.utils.toWei("2", "ether")});
-        //     //await projectInstance.addExpense('testExpense3', web3.utils.toWei("1", "ether"), {from: expenseRecipient});
-        //     await projectInstance.addExpense('testExpense3', 100,accounts[1],10,20,40,
-        //                                       tokenAlpha.address,20,tokenAlpha.address,"112");
+            await projectInstance.fundProject({from: accounts[0], value: web3.utils.toWei("2", "ether")});
+            //await projectInstance.addExpense('testExpense3', web3.utils.toWei("1", "ether"), {from: expenseRecipient});
+            await projectInstance.addExpense('testExpense3', web3.utils.toWei("1", "ether"),accounts[1],10,20,40,
+                                              tokenAlpha.address,20,tokenAlpha.address,"112");
 
-        //     await projectInstance.sponsorExpense(await projectInstance.getExpensesCount() - 1)
-        //     let initBalance = await web3.eth.getBalance(expenseRecipient);
-        //     await projectInstance.acceptExpense(await projectInstance.getExpensesCount() - 1);
+            await projectInstance.sponsorExpense(await projectInstance.getExpensesCount() - 1)
+            let initBalance = parseInt(await projectInstance.availableFund())
+            await projectInstance.acceptExpense(await projectInstance.getExpensesCount() - 1);
 
-        //     assert.equal(parseInt(initBalance) + parseInt(web3.utils.toWei("1", "ether")),
-        //         await web3.eth.getBalance(expenseRecipient));
+            assert.equal(initBalance - parseInt(web3.utils.toWei("1", "ether")),
+                await parseInt(await projectInstance.availableFund()));
 
-        // });
+        });
 
         it('issues added successfully', async () => {
 
@@ -186,7 +186,7 @@ contract('GitFundedGrant', (accounts) => {
 
         });
 
-        it('issue with funds accepted successfully', async () => {
+         it('issue with funds accepted successfully', async () => {
 
             let issueFundRecipient = accounts[3];
             let totalIssues = await projectInstance.getIssuesCount();
@@ -199,44 +199,52 @@ contract('GitFundedGrant', (accounts) => {
 
             const nonce = web3.utils.hexToNumber(latestNonce);
 
-            const params = [
-                ["address", "string", "address[]", "address[]", "string", "uint", "address", "uint", "uint", "uint"],
-                [
-                    web3.utils.toChecksumAddress(BountiesRelayerContract.address),
-                    "metaIssueAndContribute",
-                    [accounts[3]],
-                    [accounts[3]],
-                    "data",
-                    2528821098,
-                    "0x0000000000000000000000000000000000000000",
-                    0,
-                    1,
-                    nonce
-                ]
-            ];
+             const params = [
+                 ["address", "string", "address[]", "address[]", "string", "uint", "address", "uint", "uint", "uint"],
+                 [
+                     web3.utils.toChecksumAddress(BountiesRelayerContract.address),
+                     "metaIssueAndContribute",
+                     [accounts[3]],
+                     [accounts[3]],
+                     "data",
+                     2528821098,
+                     "0x0000000000000000000000000000000000000000",
+                     0,
+                     1,
+                     nonce
+                 ]
+             ];
 
             let paramsHash = web3.utils.keccak256(web3.eth.abi.encodeParameters(...params));
 
             let signature = await web3.eth.sign(paramsHash, accounts[3]);
 
             await projectInstance.fundProject({from: accounts[0], value: web3.utils.toWei("1", "ether")});
-            await projectInstance.addIssue('testIssue3', web3.utils.toWei("1", "ether"), {from: issueFundRecipient});
 
-            await projectInstance.acceptIssue(await projectInstance.getIssuesCount() - 1,
+            let totalBounties = await StandardBountiesContract.numBounties();
+            await projectInstance.addIssue('testIssue4', web3.utils.toWei("1", "ether"), {from: issueFundRecipient});
+
+             await projectInstance.acceptIssue(await projectInstance.getIssuesCount() - 1,
+                 signature,
+                 [accounts[3]],
+                 [accounts[3]],
+                 "data",
+                 2528821098,
+                 "0x0000000000000000000000000000000000000000",
+                 0,
+                 web3.utils.toWei("1", "ether"),
+                 nonce);
+            await projectInstance.fundIssue(await projectInstance.getIssuesCount() - 1,
                 signature,
-                [accounts[3]],
-                [accounts[3]],
-                "data",
-                2528821098,
-                "0x0000000000000000000000000000000000000000",
-                0,
                 web3.utils.toWei("1", "ether"),
                 nonce);
 
-            assert.equal(await projectInstance.getIssuesCount(), parseInt(totalIssues) + 1);
 
-            const bounty = await StandardBountiesContract.getBounty(0);
-            assert(bounty != null, 'No bounty was created via the meta tx relayer');
+            const bounty = await StandardBountiesContract.getBounty(totalBounties);
+
+            assert.equal(await projectInstance.getIssuesCount(), parseInt(totalIssues) + 1);
+            assert.equal(bounty.contributions.length, 2); // 2 contributions - 1 when creating the bounty and 1 during the fundIssue call
+            assert(bounty !== [], 'No bounty was created via the meta tx relayer');
             assert(bounty.issuers[0] === accounts[3], 'Bounty issuer not the same account who signed the meta tx');
 
         });

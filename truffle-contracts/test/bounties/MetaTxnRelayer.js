@@ -2,7 +2,7 @@ const StandardBounties = artifacts.require("../contracts/StandardBounties");
 const HumanStandardToken = artifacts.require("../contracts/inherited/HumanStandardToken");
 const BountiesMetaTxRelayer = artifacts.require("../contracts/BountiesMetaTxRelayer");
 
-const utils = require("./helpers/Utils");
+const utils = require("../helpers/Utils");
 
 contract("BountiesMetaTxRelayer", function(accounts) {
   it("[ETH][META] Verifies that the Meta Txn Relayer deployment works", async () => {

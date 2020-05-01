@@ -1,7 +1,7 @@
 const StandardBounties = artifacts.require("../contracts/StandardBounties");
 const HumanStandardToken = artifacts.require("../contracts/inherited/HumanStandardToken");
 
-const utils = require('./helpers/Utils');
+const utils = require('../helpers/Utils');
 
 contract('StandardBounties', function(accounts) {
 
