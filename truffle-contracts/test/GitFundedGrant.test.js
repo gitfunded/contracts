@@ -107,23 +107,23 @@ contract('GitFundedGrant', (accounts) => {
             assert.equal(totalExpenses, 2)
         });
 
-        it('expense accepted successfully', async () => {
+        // it('expense accepted successfully', async () => {
 
-            let expenseRecipient = accounts[3];
+        //     let expenseRecipient = accounts[3];
 
-            await projectInstance.fundProject({from: accounts[0], value: web3.utils.toWei("2", "ether")});
-            //await projectInstance.addExpense('testExpense3', web3.utils.toWei("1", "ether"), {from: expenseRecipient});
-            await projectInstance.addExpense('testExpense3', 100,accounts[1],10,20,40,
-                                              tokenAlpha.address,20,tokenAlpha.address,"112");
+        //     await projectInstance.fundProject({from: accounts[0], value: web3.utils.toWei("2", "ether")});
+        //     //await projectInstance.addExpense('testExpense3', web3.utils.toWei("1", "ether"), {from: expenseRecipient});
+        //     await projectInstance.addExpense('testExpense3', 100,accounts[1],10,20,40,
+        //                                       tokenAlpha.address,20,tokenAlpha.address,"112");
 
-            await projectInstance.sponsorExpense(await projectInstance.getExpensesCount() - 1)
-            let initBalance = await web3.eth.getBalance(expenseRecipient);
-            await projectInstance.acceptExpense(await projectInstance.getExpensesCount() - 1);
+        //     await projectInstance.sponsorExpense(await projectInstance.getExpensesCount() - 1)
+        //     let initBalance = await web3.eth.getBalance(expenseRecipient);
+        //     await projectInstance.acceptExpense(await projectInstance.getExpensesCount() - 1);
 
-            assert.equal(parseInt(initBalance) + parseInt(web3.utils.toWei("1", "ether")),
-                await web3.eth.getBalance(expenseRecipient));
+        //     assert.equal(parseInt(initBalance) + parseInt(web3.utils.toWei("1", "ether")),
+        //         await web3.eth.getBalance(expenseRecipient));
 
-        });
+        // });
 
         it('issues added successfully', async () => {
 
