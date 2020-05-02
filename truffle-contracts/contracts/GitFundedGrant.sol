@@ -1,9 +1,10 @@
 pragma solidity >=0.5.0 < 0.6.0;
 import "./dao/oz/SafeMath.sol";
-import './bounties/BountiesMetaTxRelayer.sol';
+import './bounties/iBountiesMetaTxRelayer.sol';
+import './dao/iGovernance.sol';
 import './dao/Governance.sol';
 
-contract GitFundedGrant is Governance {
+contract GitFundedGrant is Governance{
 
 
     uint public version = 1;
@@ -12,11 +13,13 @@ contract GitFundedGrant is Governance {
 
     bool public active = true;
     uint public totalCurrentMembers = 0;
+    iGovernance ig;
+    iBountiesMetaTxRelayer ib;
 
 
   constructor(string memory i_repoId, string memory i_title, uint i_budget, address payable i_admin, address i_bountyAddress, address i_tokenAddress)
   public
-  Governance(i_admin, [i_tokenAddress], 17280, 35, 35, 35, 70, 10, 3, 1)
+   Governance(i_admin, [i_tokenAddress], 17280, 35, 35, 35, 70, 10, 3, 1)
   {
 
     repoId = i_repoId;
@@ -26,7 +29,8 @@ contract GitFundedGrant is Governance {
     availableFund = 0;
     live = true;
 
-    bountiesContract = BountiesMetaTxRelayer(i_bountyAddress);
+    //bountiesContract = BountiesMetaTxRelayer(i_bountyAddress);
+    ib=iBountiesMetaTxRelayer(i_bountyAddress);
     tokenAddress = tokenAddress;
 
     contractStartTime = now;
@@ -107,7 +111,7 @@ contract GitFundedGrant is Governance {
   uint budget; // In dollars
   uint public availableFund; // In Ether
   bool live;
-  BountiesMetaTxRelayer public bountiesContract;
+  //BountiesMetaTxRelayer public bountiesContract;
   address tokenAddress;
 
   modifier onlyAdmin  {
@@ -146,7 +150,6 @@ contract GitFundedGrant is Governance {
 
     // TODO: The proposal needs to be pass (commented to pass the test)
 //    require (proposal.flags[2]==true,"Proposal not passed");
-
 
     uint amount = expenses[expenseIndex].amount;
     require(expenses[expenseIndex].status == ExpenseStatus.PENDING);
@@ -235,7 +238,7 @@ contract GitFundedGrant is Governance {
         availableFund -= amount;
         issues[issueIndex].allocated =  amount;
 
-        issues[issueIndex].bountyId=bountiesContract.metaIssueBounty(signature, _issuers,
+        issues[issueIndex].bountyId = ib.metaIssueBounty(signature, _issuers,
             _approvers, _data, _deadline, _token, _tokenVersion, _nonce);
 
     }
@@ -261,7 +264,8 @@ contract GitFundedGrant is Governance {
     issues[issueIndex].status = IssueStatus.TODO;
     availableFund -= amount;
     issues[issueIndex].allocated =  amount;
-    issues[issueIndex].bountyId=bountiesContract.metaIssueAndContribute.value(amount)(signature, _issuers,
+
+    issues[issueIndex].bountyId=ib.metaIssueAndContribute.value(amount)(signature, _issuers,
       _approvers, _data, _deadline, _token, _tokenVersion, _depositAmount, _nonce);
 
   }
@@ -282,7 +286,7 @@ contract GitFundedGrant is Governance {
 
       require(issues[issueIndex].status == IssueStatus.TODO);
       issues[issueIndex].allocated +=  _amount;
-      bountiesContract.metaContribute.value(_amount)(_signature,_bountyId,_amount,_nonce);
+      ib.metaContribute.value(_amount)(_signature,_bountyId,_amount,_nonce);
 
    }
 }
