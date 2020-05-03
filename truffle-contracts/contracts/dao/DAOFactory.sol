@@ -18,9 +18,9 @@ contract DAOFactory {
 
   );
 
-  function newDAO() public returns (address) {
+  function newDAO(address _admin) public returns (address) {
 
-    Governance dao = new Governance(msg.sender, [tokenAddress], 17280, 35, 35, 35, 70, 10, 3, 1);
+    Governance dao = new Governance(_admin, [tokenAddress], 17280, 35, 35, 35, 70, 10, 3, 1);
 
     daos[msg.sender].push(address(dao));
     daoCount += 1;

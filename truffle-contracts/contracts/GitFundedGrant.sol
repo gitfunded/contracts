@@ -18,7 +18,7 @@ contract GitFundedGrant {
     Governance dao;
 
 
-  constructor(string memory i_repoId, string memory i_title, uint i_budget, address payable i_admin, address daoAddress, address i_bountyAddress, address i_tokenAddress)
+  constructor(string memory i_repoId, string memory i_title, uint i_budget, address payable i_admin, address i_bountyAddress, address i_tokenAddress)
   public
   {
 
@@ -31,10 +31,16 @@ contract GitFundedGrant {
 
     //bountiesContract = BountiesMetaTxRelayer(i_bountyAddress);
     ib=iBountiesMetaTxRelayer(i_bountyAddress);
-    dao = Governance(daoAddress);
     tokenAddress = tokenAddress;
 
     contractStartTime = now;
+
+  }
+
+  // Initiate all the contracts used by GitFunded
+  function initialize(address daoAddress) onlyAdmin public {
+
+    dao = Governance(daoAddress);
 
   }
 
