@@ -26,13 +26,14 @@ contract GitFundedGrantFactory {
   );
 
   function newProject(
-    string memory repoId, string memory title, uint budget) public returns (address) {
+    string memory repoId, string memory title, uint budget, address daoAddres) public returns (address) {
 
     GitFundedGrant project = new GitFundedGrant(
       repoId,
       title,
       budget,
       msg.sender,
+      daoAddres,
       bountyAddress,
       tokenAddress
     );

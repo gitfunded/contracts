@@ -1,6 +1,7 @@
 const gitFundedGrantFactory = artifacts.require("./GitFundedGrantFactory.sol");
 const bountyContract = artifacts.require("./bounties/StandardBounties.sol");
 const bountyRelayerContract = artifacts.require("./bounties/BountiesMetaTxRelayer.sol");
+const daoFactoryContract = artifacts.require("./dao/DAOFactory.sol");
 const tokenContract = artifacts.require("./dao/Token.sol");
 
 module.exports = function(deployer) {
@@ -28,6 +29,11 @@ module.exports = function(deployer) {
 
             // Set the metaTxRelayer of StandardBounties to authenticate the relayer contract
             bountyContractInstance.setMetaTxRelayer(bountyRelayerContractAddress);
+        });
+
+        await deployer.deploy(daoFactoryContract, tokenAddress).then(() => {
+
+            console.log("daoFactoryContract address: ", daoFactoryContract.address)
         });
 
         await deployer.deploy(gitFundedGrantFactory, bountyRelayerContractAddress, tokenAddress).then(() => {
