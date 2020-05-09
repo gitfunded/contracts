@@ -1,17 +1,21 @@
-const voting = artifacts.require('./voting.sol');
-
+const voting = artifacts.require('./votingFactory.sol');
+const voting1 = artifacts.require('./voting.sol');
 
 contract('Voting Tests', (accounts) => {
-    let votingInstance;
+    let votingInstance1,votingInstance;
 
     const account_a = accounts[0];
 
     before(async () => {
-        votingInstance = await voting.deployed();
+        votingInstance1 = await voting.deployed();
 
     });
 
     beforeEach(async () => {
+        await votingInstance1.newVoting();
+        const voteAddress = await votingInstance1.getContractAddress.call({from: account_a});
+        //daoInstance = await Moloch.at(daoAddress[0]);
+        votingInstance=await voting1.at(voteAddress[0]);
 
     });
 
