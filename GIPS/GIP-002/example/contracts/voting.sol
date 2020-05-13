@@ -12,13 +12,13 @@ contract voting
     string private constant ERROR_INIT_SUPPORT_TOO_BIG = "VOTING_INIT_SUPPORT_TOO_BIG";
     string private constant ERROR_CHANGE_SUPPORT_TOO_BIG = "VOTING_CHANGE_SUPP_TOO_BIG";
     string private constant ERROR_CAN_NOT_VOTE = "VOTING_CAN_NOT_VOTE";
-    string private constant ERROR_CAN_NOT_EXECUTE = "VOTING_CAN_NOT_EXECUTE";
+     string private constant ERROR_CAN_NOT_EXECUTE = "VOTING_CAN_NOT_EXECUTE";
     string private constant ERROR_CAN_NOT_FORWARD = "VOTING_CAN_NOT_FORWARD";
     string private constant ERROR_NO_VOTING_POWER = "VOTING_NO_VOTING_POWER";
 
 	enum VoterState { Absent, Yea, Nay }
 
-	uint256 public constant PCT_BASE = 10 ** 18; // 0% = 0; 1% = 10^16; 100% = 10^18
+	//uint256 public constant PCT_BASE = 10 ** 18; // 0% = 0; 1% = 10^16; 100% = 10^18
 
     using SafeMath for uint256;
 
@@ -28,6 +28,7 @@ contract voting
         uint256 snapshotBlock;
         uint256 supportRequiredPct;
         uint256 minAcceptQuorumPct;
+        uint256 votingPower;
         uint256 yea;
         uint256 nay;
         mapping (address => VoterState) voters;
@@ -46,9 +47,8 @@ contract voting
     uint256 public votesLength;
 
     function initialize( uint256 _supportRequiredPct, uint256 _minAcceptQuorumPct, uint256 _voteTime) external {
-        //require(_minAcceptQuorumPct <= _supportRequiredPct, ERROR_INIT_PCTS);
-        //require(_supportRequiredPct < PCT_BASE, ERROR_INIT_SUPPORT_TOO_BIG);
-        require(_supportRequiredPct <= _minAcceptQuorumPct, ERROR_INIT_PCTS);
+        require(_minAcceptQuorumPct <= _supportRequiredPct, ERROR_INIT_PCTS);
+        // require(_supportRequiredPct < PCT_BASE, ERROR_INIT_SUPPORT_TOO_BIG);
         supportRequiredPct = _supportRequiredPct;
         minAcceptQuorumPct = _minAcceptQuorumPct;
         voteTime = _voteTime;
@@ -57,17 +57,15 @@ contract voting
     function changeSupportRequiredPct(uint256 _supportRequiredPct)
         external
     {
-        //require(minAcceptQuorumPct <= _supportRequiredPct, ERROR_CHANGE_SUPPORT_PCTS);
+        require(minAcceptQuorumPct <= _supportRequiredPct, ERROR_CHANGE_SUPPORT_PCTS);
         //require(_supportRequiredPct < PCT_BASE, ERROR_CHANGE_SUPPORT_TOO_BIG);
-        require(_supportRequiredPct <= minAcceptQuorumPct, ERROR_INIT_PCTS);
         supportRequiredPct = _supportRequiredPct;
     }
 
     function changeMinAcceptQuorumPct(uint256 _minAcceptQuorumPct)
         external
     {
-        //require(_minAcceptQuorumPct <= supportRequiredPct, ERROR_CHANGE_QUORUM_PCTS);
-        require(supportRequiredPct <= _minAcceptQuorumPct, ERROR_INIT_PCTS);
+        require(_minAcceptQuorumPct <= supportRequiredPct, ERROR_CHANGE_QUORUM_PCTS);
         minAcceptQuorumPct = _minAcceptQuorumPct;
     }
 
@@ -81,13 +79,14 @@ contract voting
         uint256 snapshotBlock = uint256(block.number - 1); // avoid double voting in this very block
 
         voteId = votesLength++;
-
+        // require(votingPower > 0, ERROR_NO_VOTING_POWER);
         Vote storage vote_ = votes[voteId];
         vote_.startDate = uint256(block.timestamp);
         vote_.snapshotBlock = snapshotBlock;
         vote_.supportRequiredPct = supportRequiredPct;
         vote_.minAcceptQuorumPct = minAcceptQuorumPct;
         vote_.executed=false;
+        // vote_.votingPower=?;
 
         if (_castVote && _canVote(voteId, msg.sender)) {
             _vote(voteId, true, msg.sender, _executesIfDecided);
@@ -103,6 +102,7 @@ contract voting
         return _canVote(_voteId, _voter);
     }
 
+    //add voting power parameter
     function getVote(uint256 _voteId)
         public
         view
@@ -138,18 +138,19 @@ contract voting
         Vote storage vote_ = votes[_voteId];
 
         // This could re-enter, though we can assume the governance token is not malicious
+        uint256 voterStake=?
         VoterState state = vote_.voters[_voter];
         // If voter had previously voted, decrease count
         // if (state == VoterState.Yea) {
-        //     vote_.yea = vote_.yea.sub(1);
+        //     vote_.yea = vote_.yea.sub(voterStake);
         // } else if (state == VoterState.Nay) {
-        //     vote_.nay = vote_.nay.sub(1);
+        //     vote_.nay = vote_.nay.sub(voterStake);
         // }
 
         if (_supports) {
-            vote_.yea = vote_.yea.add(1);
+            vote_.yea = vote_.yea.add(voterStake);
         } else {
-            vote_.nay = vote_.nay.add(1);
+            vote_.nay = vote_.nay.add(voterStake);
         }
 
         vote_.voters[_voter] = _supports ? VoterState.Yea : VoterState.Nay;
@@ -177,9 +178,8 @@ contract voting
             return false;
         }
 
-        //uint256 computedPct = _value.mul(PCT_BASE) / _total;
-        //return computedPct > _pct;
-        return _value >= _pct;
+        uint256 computedPct = _value / _total;
+        return computedPct > _pct;
     }
 
     function _canExecute(uint256 _voteId) internal view returns (bool) {
@@ -190,11 +190,12 @@ contract voting
         }
 
         // Voting is already decided
-        // if (_isValuePct(vote_.yea, 5, vote_.supportRequiredPct)) {
-        //     return true;
-        // }
+        if (_isValuePct(vote_.yea, 5, vote_.supportRequiredPct)) {
+            return true;
+        }
 
-        // Vote ended/        if (_isVoteOpen(vote_)) {
+        // Vote ended/
+        // if (_isVoteOpen(vote_)) {
         //     return false;
         // }
         // Has enough support?
