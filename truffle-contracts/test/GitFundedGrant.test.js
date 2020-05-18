@@ -2,6 +2,8 @@ const GitFundedGrant = artifacts.require('./GitFundedGrant.sol');
 const GitFundedGrantFactory = artifacts.require('./GitFundedGrantFactory.sol');
 const StandardBounties = artifacts.require('./bounties/StandardBounties.sol');
 const BountiesMetaTxRelayer = artifacts.require('./bounties/BountiesMetaTxRelayer.sol');
+const ENSSubdomainRegistrar = artifacts.require('./ens/ENSSubdomainRegistrar.sol');
+const keccak256 = require('js-sha3').keccak_256;
 const Token = artifacts.require('./dao/Token');
 const TOKEN_SUPPLY=100;
 require('chai')
@@ -9,7 +11,7 @@ require('chai')
   .should();
 
 contract('GitFundedGrant', (accounts) => {
-  let contract, projectInstance, StandardBountiesContract, BountiesRelayerContract;
+  let contract, projectInstance, StandardBountiesContract, BountiesRelayerContract,first=false,ENSSubdomainInstance;
 
   const account_a = accounts[0];
 
@@ -24,15 +26,26 @@ contract('GitFundedGrant', (accounts) => {
 
   beforeEach(async () => {
 
+      if(first)
+      {
+        const label1='0x'+keccak256("organization");
+        await ENSSubdomainInstance.deleteName(label1,{from: accounts[0]});
+      }
+
       await contract.newProject(
           'testRepo1',
           'testRepo title',
           1000,
+          '0x'+keccak256("organization"),
           {from: accounts[0]}
       );
 
       const contractAddress = await contract.getContractAddress.call({from: account_a});
       projectInstance = await GitFundedGrant.at(contractAddress[0]);
+      const ensAddress = await contract.getEnsAddress.call({from: account_a});
+      ENSSubdomainInstance= await ENSSubdomainRegistrar.at(ensAddress);
+      //console.log(ENSSubdomainInstance);
+      first=true;
 
     });
 
@@ -55,6 +68,7 @@ contract('GitFundedGrant', (accounts) => {
                 'testRepo2',
                 'testRepo2 title',
                 2000,
+                '0x'+keccak256("organization1"),
                 {from: account_a}
             );
 

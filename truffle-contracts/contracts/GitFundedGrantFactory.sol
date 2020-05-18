@@ -1,18 +1,22 @@
 pragma solidity >=0.5.0 < 0.6.0;
 import './GitFundedGrant.sol';
+import "./ens/ENSSubdomainRegistrar.sol";
+
 
 contract GitFundedGrantFactory {
   uint public projectCount = 0;
   address bountyAddress; // This is actually BountiesMetaTxRelayer address
   address tokenAddress;
+  address ensSubdomainRegistrarAddress;
+  ENSSubdomainRegistrar esr;
   mapping(address => address[]) public projects;
 
-  constructor(address _bountyAddress, address _tokenAddress) public {
+  constructor(address _bountyAddress, address _tokenAddress,address _ensProxyAddress,address _ensSubdomainRegistrar) public {
 
     bountyAddress = _bountyAddress;
     tokenAddress = _tokenAddress;
-
-
+    ensSubdomainRegistrarAddress=_ensSubdomainRegistrar;
+    esr=ENSSubdomainRegistrar(_ensSubdomainRegistrar);
   }
 
 
@@ -26,7 +30,7 @@ contract GitFundedGrantFactory {
   );
 
   function newProject(
-    string memory repoId, string memory title, uint budget) public returns (address) {
+    string memory repoId, string memory title, uint budget,bytes32 label) public returns (address) {
 
     GitFundedGrant project = new GitFundedGrant(
       repoId,
@@ -36,6 +40,9 @@ contract GitFundedGrantFactory {
       bountyAddress,
       tokenAddress
     );
+    // bytes32 label=keccak256(abi.encode(title));
+    // bytes32 label1=keccak256("testRepo title");
+    esr.createName(label,msg.sender);
 
     projects[msg.sender].push(address(project));
     projectCount += 1;
@@ -51,5 +58,9 @@ contract GitFundedGrantFactory {
 
   function getProjectsCount() public view returns (uint) {
     return projectCount;
+  }
+
+  function getEnsAddress() public view returns (address) {
+    return ensSubdomainRegistrarAddress;
   }
 }
