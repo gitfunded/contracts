@@ -4,7 +4,7 @@ import './bounties/iBountiesMetaTxRelayer.sol';
 import './dao/iGovernance.sol';
 import './dao/Governance.sol';
 
-contract GitFundedGrant is Governance{
+contract GitFundedGrant {
 
 
     uint public version = 1;
@@ -15,11 +15,11 @@ contract GitFundedGrant is Governance{
     uint public totalCurrentMembers = 0;
     iGovernance ig;
     iBountiesMetaTxRelayer ib;
+    Governance dao;
 
 
   constructor(string memory i_repoId, string memory i_title, uint i_budget, address payable i_admin, address i_bountyAddress, address i_tokenAddress)
   public
-   Governance(i_admin, [i_tokenAddress], 17280, 35, 35, 35, 70, 10, 3, 1)
   {
 
     repoId = i_repoId;
@@ -34,6 +34,13 @@ contract GitFundedGrant is Governance{
     tokenAddress = tokenAddress;
 
     contractStartTime = now;
+
+  }
+
+  // Initiate all the contracts used by GitFunded
+  function initialize(address daoAddress) onlyAdmin public {
+
+    dao = Governance(daoAddress);
 
   }
 
@@ -139,16 +146,16 @@ contract GitFundedGrant is Governance{
 
     Expense memory expense = Expense(_title, _amount, 0, msg.sender, ExpenseStatus.PENDING,0);
     expenses.push(expense);
-    submitProposal(applicant,sharesRequested,lootRequested,tributeOffered,tributeToken,paymentRequested,paymentToken,details);
+    dao.submitProposal(applicant,sharesRequested,lootRequested,tributeOffered,tributeToken,paymentRequested,paymentToken,details);
 
   }
 
   function acceptExpense(uint expenseIndex) onlyAdmin public {
 
-    uint index=expenses[expenseIndex].proposalIndex;
-    Proposal storage proposal = proposals[proposalQueue[index]];
+    uint index = expenses[expenseIndex].proposalIndex;
 
     // TODO: The proposal needs to be pass (commented to pass the test)
+//    Governance.Proposal memory proposal = dao.proposals(dao.proposalQueue(index));
 //    require (proposal.flags[2]==true,"Proposal not passed");
 
     uint amount = expenses[expenseIndex].amount;
@@ -163,7 +170,7 @@ contract GitFundedGrant is Governance{
 
   }
   function sponsorExpense (uint expenseIndex) public {
-    expenses[expenseIndex].proposalIndex =  sponsorProposal(expenseIndex);
+    expenses[expenseIndex].proposalIndex =  dao.sponsorProposal(expenseIndex);
   }
 
 
