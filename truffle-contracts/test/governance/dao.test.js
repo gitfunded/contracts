@@ -2,6 +2,8 @@ const GitFundedGrant = artifacts.require('./GitFundedGrant.sol');
 const GitFundedGrantFactory = artifacts.require('./GitFundedGrantFactory.sol');
 const StandardBounties = artifacts.require('./bounties/StandardBounties.sol');
 const BountiesMetaTxRelayer = artifacts.require('./bounties/BountiesMetaTxRelayer.sol');
+const keccak256 = require('js-sha3').keccak_256;
+const ENSSubdomainRegistrar = artifacts.require('./ens/ENSSubdomainRegistrar.sol');
 
 const Moloch = artifacts.require('./dao/Moloch');
 const GuildBank = artifacts.require('./dao/GuildBank');
@@ -46,7 +48,7 @@ async function forceMine () {
 contract('DAOContract', (accounts) => {
     let moloch, guildBank, tokenAlpha, submitter;
 
-    let contract, projectInstance, StandardBountiesContract, BountiesRelayerContract,abcd,abcd1;
+    let contract, projectInstance, StandardBountiesContract, BountiesRelayerContract,abcd,abcd1,first=false;
 
     const account_a = accounts[0];
 
@@ -125,15 +127,26 @@ contract('DAOContract', (accounts) => {
 
         // tokenAlpha.transfer(summoner, initSummonerBalance, { from: accounts[1] });
 
+      if(first)
+      {
+        const label1='0x'+keccak256("organization");
+        await ENSSubdomainInstance.deleteName(label1,{from: accounts[0]});
+      }
+
+
         await contract.newProject(
             'testRepo1',
             'testRepo title',
             1000,
+            '0x'+keccak256("organization"),
             {from: accounts[0]}
         );
 
         const contractAddress = await contract.getContractAddress.call({from: account_a});
         projectInstance = await GitFundedGrant.at(contractAddress[0]);
+        const ensAddress = await contract.getEnsAddress.call({from: account_a});
+        ENSSubdomainInstance= await ENSSubdomainRegistrar.at(ensAddress);
+        first=true;
 
         // abcd1=await Moloch.deployed();
         // const contractAddress1=await abcd1.getContractAddress.call({from: account_a});
