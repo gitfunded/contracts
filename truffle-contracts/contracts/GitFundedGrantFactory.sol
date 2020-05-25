@@ -11,7 +11,7 @@ contract GitFundedGrantFactory {
   ENSSubdomainRegistrar esr;
   mapping(address => address[]) public projects;
 
-  constructor(address _bountyAddress, address _tokenAddress,address _ensProxyAddress,address _ensSubdomainRegistrar) public {
+  constructor(address _bountyAddress, address _tokenAddress,address _ensSubdomainRegistrar) public {
 
     bountyAddress = _bountyAddress;
     tokenAddress = _tokenAddress;

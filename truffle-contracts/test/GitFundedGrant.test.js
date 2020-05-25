@@ -44,7 +44,6 @@ contract('GitFundedGrant', (accounts) => {
       projectInstance = await GitFundedGrant.at(contractAddress[0]);
       const ensAddress = await contract.getEnsAddress.call({from: account_a});
       ENSSubdomainInstance= await ENSSubdomainRegistrar.at(ensAddress);
-      //console.log(ENSSubdomainInstance);
       first=true;
 
     });
