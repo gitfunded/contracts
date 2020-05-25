@@ -1,6 +1,7 @@
 const gitFundedGrantFactory = artifacts.require("./GitFundedGrantFactory.sol");
 const bountyContract = artifacts.require("./bounties/StandardBounties.sol");
 const bountyRelayerContract = artifacts.require("./bounties/BountiesMetaTxRelayer.sol");
+const daoFactoryContract = artifacts.require("./dao/DAOFactory.sol");
 const tokenContract = artifacts.require("./dao/Token.sol");
 const ENSProxy = artifacts.require("ENSProxy");
 const keccak256 = require('js-sha3').keccak_256;
@@ -9,7 +10,7 @@ const keccak256 = require('js-sha3').keccak_256;
 
 module.exports = function(deployer) {
 
-    let bountyContractAddress,  bountyRelayerContractAddress, tokenAddress,enssubdomainRegistrarAddress,ensProxyAddress;
+    let bountyContractAddress,  bountyRelayerContractAddress, tokenAddress,ensSubdomainRegistrarAddress,ensProxyAddress;
     let bountyContractInstance;
 
     var tld = 'eth';
@@ -38,25 +39,26 @@ module.exports = function(deployer) {
             bountyContractInstance.setMetaTxRelayer(bountyRelayerContractAddress);
         });
 
-        // await deployer.deploy(enssubdomainregistrar, ).then(() => {
-
-        //     console.log("ENSSubdomainRegistrar address: ", enssubdomainregistrar.address);
-        //     enssubdomainregistrarAddress = enssubdomainregistrar.address;
-        // });
         await deployer.deploy(ENSProxy).then(async (ens) => {
 
             console.log("ENS Registry address: ", ens.address);
             await ens.deploySubdomainRegistrar(rootNode).then((tx)=>{console.log("Sub domain Registry deployed")});
             ensProxyAddress=ENSProxy.address;
-            enssubdomainregistrarAddress=await ens.sdRegistrar();
-            console.log("ENSSubdomainRegistrar Address ",enssubdomainregistrarAddress);
+            ensSubdomainRegistrarAddress = await ens.sdRegistrar();
+            console.log("ENSSubdomainRegistrar Address ",ensSubdomainRegistrarAddress);
 
         });
 
-        await deployer.deploy(gitFundedGrantFactory, bountyRelayerContractAddress, tokenAddress,ensProxyAddress,enssubdomainregistrarAddress).then(() => {
-
+        await deployer.deploy(gitFundedGrantFactory, bountyRelayerContractAddress, tokenAddress,ensProxyAddress, ensSubdomainRegistrarAddress).then(() => {
             console.log("gitFundedGrantFactory address: ", gitFundedGrantFactory.address)
         });
+        await deployer.deploy(daoFactoryContract, tokenAddress).then(() => {
+
+            console.log("daoFactoryContract address: ", daoFactoryContract.address)
+        });
+
+
+
 
 
 
