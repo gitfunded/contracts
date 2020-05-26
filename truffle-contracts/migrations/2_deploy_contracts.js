@@ -3,11 +3,19 @@ const bountyContract = artifacts.require("./bounties/StandardBounties.sol");
 const bountyRelayerContract = artifacts.require("./bounties/BountiesMetaTxRelayer.sol");
 const daoFactoryContract = artifacts.require("./dao/DAOFactory.sol");
 const tokenContract = artifacts.require("./dao/Token.sol");
+const ENSProxy = artifacts.require("ENSProxy");
+const keccak256 = require('js-sha3').keccak_256;
+
+
 
 module.exports = function(deployer) {
 
-    let bountyContractAddress,  bountyRelayerContractAddress, tokenAddress;
+    let bountyContractAddress,  bountyRelayerContractAddress, tokenAddress,ensSubdomainRegistrarAddress;
     let bountyContractInstance;
+
+    var tld = 'eth';
+    let subDomain = 'gitfunded';
+    var rootNode = '0x' + keccak256(subDomain);
 
     deployer.then(async () => {
 
@@ -31,15 +39,27 @@ module.exports = function(deployer) {
             bountyContractInstance.setMetaTxRelayer(bountyRelayerContractAddress);
         });
 
+        await deployer.deploy(ENSProxy).then(async (ens) => {
+
+            console.log("ENS Registry address: ", ens.address);
+            await ens.deploySubdomainRegistrar(rootNode).then((tx)=>{console.log("Sub domain Registry deployed")});
+            ensSubdomainRegistrarAddress = await ens.sdRegistrar();
+            console.log("ENSSubdomainRegistrar Address ",ensSubdomainRegistrarAddress);
+
+        });
+
+        await deployer.deploy(gitFundedGrantFactory, bountyRelayerContractAddress, tokenAddress, ensSubdomainRegistrarAddress).then(() => {
+            console.log("gitFundedGrantFactory address: ", gitFundedGrantFactory.address)
+        });
         await deployer.deploy(daoFactoryContract, tokenAddress).then(() => {
 
             console.log("daoFactoryContract address: ", daoFactoryContract.address)
         });
 
-        await deployer.deploy(gitFundedGrantFactory, bountyRelayerContractAddress, tokenAddress).then(() => {
 
-            console.log("gitFundedGrantFactory address: ", gitFundedGrantFactory.address)
-        });
+
+
+
 
 
     });
