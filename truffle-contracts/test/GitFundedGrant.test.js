@@ -5,13 +5,16 @@ const BountiesMetaTxRelayer = artifacts.require('./bounties/BountiesMetaTxRelaye
 const ENSSubdomainRegistrar = artifacts.require('./ens/ENSSubdomainRegistrar.sol');
 const keccak256 = require('js-sha3').keccak_256;
 const Token = artifacts.require('./dao/Token');
+const DAOFactory = artifacts.require('./dao/DAOFactory.sol');
+const Governance = artifacts.require('./dao/Governance.sol');
 const TOKEN_SUPPLY=100;
 require('chai')
   .use(require('chai-as-promised'))
   .should();
 
 contract('GitFundedGrant', (accounts) => {
-  let contract, projectInstance, StandardBountiesContract, BountiesRelayerContract,first=false,ENSSubdomainInstance;
+
+  let contract, projectInstance, daoInstance, StandardBountiesContract, BountiesRelayerContract, DAOFactoryContract, first=false, ENSSubdomainInstance;
 
   const account_a = accounts[0];
 
@@ -19,6 +22,7 @@ contract('GitFundedGrant', (accounts) => {
     contract = await GitFundedGrantFactory.deployed();
     StandardBountiesContract = await StandardBounties.deployed();
     BountiesRelayerContract = await BountiesMetaTxRelayer.deployed();
+    DAOFactoryContract = await DAOFactory.deployed();
     tokenAlpha = await Token.new(TOKEN_SUPPLY);
 
 
@@ -39,12 +43,20 @@ contract('GitFundedGrant', (accounts) => {
           '0x'+keccak256("organization"),
           {from: accounts[0]}
       );
-
       const contractAddress = await contract.getContractAddress.call({from: account_a});
       projectInstance = await GitFundedGrant.at(contractAddress[0]);
       const ensAddress = await contract.getEnsAddress.call({from: account_a});
       ENSSubdomainInstance= await ENSSubdomainRegistrar.at(ensAddress);
       first=true;
+
+      //Make GitFunded as the admin
+      await DAOFactoryContract.newDAO(contractAddress[0]);
+      const daoAddress = await DAOFactoryContract.getContractAddress.call({from: account_a});
+      daoInstance = await Governance.at(daoAddress[0]);
+
+      await projectInstance.initialize(daoAddress[0]);
+
+
 
     });
 
@@ -73,6 +85,7 @@ contract('GitFundedGrant', (accounts) => {
 
             const contractAddress = await contract.getContractAddress.call({from: account_a});
             const instance = await GitFundedGrant.at(contractAddress[0]);
+            await instance.initialize(contractAddress[0]);
             const totalProjectsAfter = await contract.getProjectsCount();
 
             assert.equal(parseInt(totalProjectsBefore) + 1, totalProjectsAfter)

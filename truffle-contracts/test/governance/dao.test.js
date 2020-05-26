@@ -4,6 +4,7 @@ const StandardBounties = artifacts.require('./bounties/StandardBounties.sol');
 const BountiesMetaTxRelayer = artifacts.require('./bounties/BountiesMetaTxRelayer.sol');
 const keccak256 = require('js-sha3').keccak_256;
 const ENSSubdomainRegistrar = artifacts.require('./ens/ENSSubdomainRegistrar.sol');
+const DAOFactory = artifacts.require('./dao/DAOFactory.sol')
 
 const Moloch = artifacts.require('./dao/Moloch');
 const GuildBank = artifacts.require('./dao/GuildBank');
@@ -48,7 +49,7 @@ async function forceMine () {
 contract('DAOContract', (accounts) => {
     let moloch, guildBank, tokenAlpha, submitter;
 
-    let contract, projectInstance, StandardBountiesContract, BountiesRelayerContract,abcd,abcd1,first=false;
+    let contract, projectInstance, daoInstance, StandardBountiesContract, BountiesRelayerContract, DAOFactoryContract, first=false;
 
     const account_a = accounts[0];
 
@@ -90,14 +91,12 @@ contract('DAOContract', (accounts) => {
       contract = await GitFundedGrantFactory.deployed();
       StandardBountiesContract = await StandardBounties.deployed();
       BountiesRelayerContract = await BountiesMetaTxRelayer.deployed();
+      DAOFactoryContract = await DAOFactory.deployed();
 
       const guildBankAddress = await moloch.guildBank();
       guildBank = await GuildBank.at(guildBankAddress);
-      
+
       const proposalCount = await moloch.proposalCount();
-      console.log(proposalCount);
-
-
 
   });
 
@@ -148,17 +147,21 @@ contract('DAOContract', (accounts) => {
         ENSSubdomainInstance= await ENSSubdomainRegistrar.at(ensAddress);
         first=true;
 
-        // abcd1=await Moloch.deployed();
-        // const contractAddress1=await abcd1.getContractAddress.call({from: account_a});
-        // abcd=await Moloch.at(contractAddress1[0]);
+        //Make current account as the admin
+        await DAOFactoryContract.newDAO(account_a);
+        const daoAddress = await DAOFactoryContract.getContractAddress.call({from: account_a});
+        daoInstance = await Moloch.at(daoAddress[0]);
+
+        await projectInstance.initialize(daoAddress[0]);
+
 
     });
 
-  describe('constructor',  () => {
+  describe('Moloch contract',  () => {
     it('deploys successfully', async () => {
 
         console.log(await projectInstance.getExpensesCount());
-        console.log(await projectInstance.proposalCount());
+        console.log(await daoInstance.proposalCount());
 
 
 
@@ -169,31 +172,31 @@ contract('DAOContract', (accounts) => {
     //     //console.log(await projectInstance.proposalCount());
     // });
     it('check submit proposal', async () => {
-        let bef=await projectInstance.getProposal();
-        await projectInstance.submitProposal(accounts[1],10,20,40,tokenAlpha.address,20,tokenAlpha.address,"112");
-        await projectInstance.submitProposal(accounts[1],10,20,40,tokenAlpha.address,20,tokenAlpha.address,"112");
-        let aft=await projectInstance.getProposal();
+        let bef = await daoInstance.getProposal();
+        await daoInstance.submitProposal(accounts[1],10,20,40,tokenAlpha.address,20,tokenAlpha.address,"112");
+        await daoInstance.submitProposal(accounts[1],10,20,40,tokenAlpha.address,20,tokenAlpha.address,"112");
+        let aft = await daoInstance.getProposal();
         assert.equal(parseInt(bef),parseInt(aft)-2);
     });
         it('check sponsor proposal', async () => {
-        let bef=await projectInstance.getProposal();
-        await projectInstance.submitProposal(accounts[1],10,20,40,tokenAlpha.address,20,tokenAlpha.address,"112");
-        await projectInstance.sponsorProposal(bef);
-        let aft=await projectInstance.getProposal();
-        let ajk=await projectInstance.getProposalQueueLength();
+        let bef=await daoInstance.getProposal();
+        await daoInstance.submitProposal(accounts[1],10,20,40,tokenAlpha.address,20,tokenAlpha.address,"112");
+        await daoInstance.sponsorProposal(bef);
+        let aft=await daoInstance.getProposal();
+        let ajk=await daoInstance.getProposalQueueLength();
         assert.equal(parseInt(bef),parseInt(aft)-1);
         assert.equal(parseInt(ajk),1);
     });
         it('check vote and process proposal', async () => {
-        let bef=await projectInstance.getProposal();
-        let bjk=await projectInstance.getProposalQueueLength();
-        await projectInstance.submitProposal(accounts[1],10,20,40,tokenAlpha.address,20,tokenAlpha.address,"112");
-        await projectInstance.sponsorProposal(bef);
-        let aft=await projectInstance.getProposal();
-        let ajk=await projectInstance.getProposalQueueLength();
-        await projectInstance.submitVote(0,2);
-        await projectInstance.processProposal(0);
-        let res=await projectInstance.getResult();
+        let bef=await daoInstance.getProposal();
+        let bjk=await daoInstance.getProposalQueueLength();
+        await daoInstance.submitProposal(accounts[1],10,20,40,tokenAlpha.address,20,tokenAlpha.address,"112");
+        await daoInstance.sponsorProposal(bef);
+        let aft=await daoInstance.getProposal();
+        let ajk=await daoInstance.getProposalQueueLength();
+        await daoInstance.submitVote(0,2);
+        await daoInstance.processProposal(0);
+        let res=await daoInstance.getResult();
         assert.equal(parseInt(res),2);
         assert.equal(parseInt(bef),parseInt(aft)-1);
         assert.equal(parseInt(ajk),parseInt(bjk)+1);
