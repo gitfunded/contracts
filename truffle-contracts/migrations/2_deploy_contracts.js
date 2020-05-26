@@ -10,7 +10,7 @@ const keccak256 = require('js-sha3').keccak_256;
 
 module.exports = function(deployer) {
 
-    let bountyContractAddress,  bountyRelayerContractAddress, tokenAddress,ensSubdomainRegistrarAddress,ensProxyAddress;
+    let bountyContractAddress,  bountyRelayerContractAddress, tokenAddress,ensSubdomainRegistrarAddress;
     let bountyContractInstance;
 
     var tld = 'eth';
@@ -43,13 +43,12 @@ module.exports = function(deployer) {
 
             console.log("ENS Registry address: ", ens.address);
             await ens.deploySubdomainRegistrar(rootNode).then((tx)=>{console.log("Sub domain Registry deployed")});
-            ensProxyAddress=ENSProxy.address;
             ensSubdomainRegistrarAddress = await ens.sdRegistrar();
             console.log("ENSSubdomainRegistrar Address ",ensSubdomainRegistrarAddress);
 
         });
 
-        await deployer.deploy(gitFundedGrantFactory, bountyRelayerContractAddress, tokenAddress,ensProxyAddress, ensSubdomainRegistrarAddress).then(() => {
+        await deployer.deploy(gitFundedGrantFactory, bountyRelayerContractAddress, tokenAddress, ensSubdomainRegistrarAddress).then(() => {
             console.log("gitFundedGrantFactory address: ", gitFundedGrantFactory.address)
         });
         await deployer.deploy(daoFactoryContract, tokenAddress).then(() => {
