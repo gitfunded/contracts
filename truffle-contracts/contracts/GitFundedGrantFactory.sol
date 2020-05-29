@@ -40,8 +40,6 @@ contract GitFundedGrantFactory {
       bountyAddress,
       tokenAddress
     );
-    // bytes32 label=keccak256(abi.encode(title));
-    // bytes32 label1=keccak256("testRepo title");
     esr.createName(label,msg.sender);
 
     projects[msg.sender].push(address(project));

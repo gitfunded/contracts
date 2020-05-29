@@ -69,7 +69,7 @@ contract GitFundedGrant {
   */
   enum Role {
     ADMIN,
-    MEMBER,
+    SHAREHOLDER,
     CONTRIBUTOR
 
   }
@@ -146,7 +146,7 @@ contract GitFundedGrant {
 
     Expense memory expense = Expense(_title, _amount, 0, msg.sender, ExpenseStatus.PENDING,0);
     expenses.push(expense);
-    dao.submitProposal(applicant,sharesRequested,lootRequested,tributeOffered,tributeToken,paymentRequested,paymentToken,details);
+    dao.submitProposal(sharesRequested,tributeOffered,tributeToken,paymentRequested,paymentToken,details);
 
   }
 
@@ -168,9 +168,6 @@ contract GitFundedGrant {
     expenses[expenseIndex].allocated =  amount;
     expenses[expenseIndex].recipient.transfer(amount);
 
-  }
-  function sponsorExpense (uint expenseIndex) public {
-    expenses[expenseIndex].proposalIndex =  dao.sponsorProposal(expenseIndex);
   }
 
 
