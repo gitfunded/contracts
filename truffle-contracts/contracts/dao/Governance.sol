@@ -41,6 +41,7 @@ contract Governance is ReentrancyGuard {
     uint256 public proposalCount = 0; // total proposals submitted
     uint256 public totalShares = 0; // total shares across all members
     uint256 public result;
+    uint256 public memberCount=0;
 
     // uint256 public lastEmergencyProposalIndex = 0; // index of the last proposal which triggered emergency processing
 
@@ -125,6 +126,7 @@ contract Governance is ReentrancyGuard {
         summoningTime = now;
 
         members[admin] = Member(admin, 1, true, Role.Admin);
+        memberCount++;
         totalShares = 1;
 
         emit SummonComplete(admin, 1);
@@ -133,8 +135,9 @@ contract Governance is ReentrancyGuard {
     /*****************
     PROPOSAL FUNCTIONS
     *****************/
-    function addContibutor() public nonReentrant {
-        members[msg.sender]=Member(msg.sender,0,true,Role.Contributor);             
+    function addContributor() public nonReentrant {
+        members[msg.sender]=Member(msg.sender,0,true,Role.Contributor);
+        memberCount++;            
     }
 
     function donate (uint256 tributeOffered, address tributeToken) public nonReentrant {
@@ -150,12 +153,12 @@ contract Governance is ReentrancyGuard {
         uint256 paymentRequested,
         address paymentToken,
         string memory details
-    ) public nonReentrant returns (uint256 proposalId) {
+    ) public nonReentrant onlyMember returns (uint256 proposalId) {
 
         require(sharesRequested <= MAX_NUMBER_OF_SHARES, "too many shares requested");
 
         // collect tribute from proposer and store it in the Moloch until the proposal is processed
-        require(IERC20(tributeToken).transferFrom(msg.sender, address(this), tributeOffered), "tribute token transfer failed");
+        // require(IERC20(tributeToken).transferFrom(msg.sender, address(this), tributeOffered), "tribute token transfer failed");
 
         bool[3] memory flags; // [processed, didPass, cancelled]
 
@@ -341,4 +344,8 @@ contract Governance is ReentrancyGuard {
     function getResult ()  public view returns(uint256){
         return result;//checks proposal passed or not
     }
+    function getMembers () public view returns(uint256) {
+        return memberCount;
+    }
+    
 }
