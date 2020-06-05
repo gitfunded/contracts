@@ -6,14 +6,14 @@ const keccak256 = require('js-sha3').keccak_256;
 const ENSSubdomainRegistrar = artifacts.require('./ens/ENSSubdomainRegistrar.sol');
 const DAOFactory = artifacts.require('./dao/DAOFactory.sol')
 
-const Moloch = artifacts.require('./dao/Moloch');
+const Moloch = artifacts.require('./dao/Governance');
 const GuildBank = artifacts.require('./dao/GuildBank');
 const Token = artifacts.require('./dao/Token');
 const Submitter = artifacts.require('./dao/Submitter');
 
 const deploymentConfig = {
-    'PERIOD_DURATION_IN_SECONDS': 17280,
-    'VOTING_DURATON_IN_PERIODS': 35,
+    'PERIOD_DURATION_IN_SECONDS': 5,
+    'VOTING_DURATON_IN_PERIODS': 2,
     'GRACE_DURATON_IN_PERIODS': 35,
     'EMERGENCY_PROCESSING_WAIT_IN_PERIODS': 70,
     'BAILOUT_WAIT_IN_PERIODS': 75,
@@ -43,6 +43,10 @@ async function restore (snapshotId) {
 async function forceMine () {
     return ethereum.send('evm_mine', [])
 }
+
+async function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+   }
 
 
 
@@ -79,13 +83,7 @@ contract('DAOContract', (accounts) => {
           summoner,
           [tokenAlpha.address],
           deploymentConfig.PERIOD_DURATION_IN_SECONDS,
-          deploymentConfig.VOTING_DURATON_IN_PERIODS,
-          deploymentConfig.GRACE_DURATON_IN_PERIODS,
-          deploymentConfig.EMERGENCY_PROCESSING_WAIT_IN_PERIODS,
-          deploymentConfig.BAILOUT_WAIT_IN_PERIODS,
-          deploymentConfig.PROPOSAL_DEPOSIT,
-          deploymentConfig.DILUTION_BOUND,
-          deploymentConfig.PROCESSING_REWARD,
+          deploymentConfig.VOTING_DURATON_IN_PERIODS
       );
 
       contract = await GitFundedGrantFactory.deployed();
@@ -97,6 +95,8 @@ contract('DAOContract', (accounts) => {
       guildBank = await GuildBank.at(guildBankAddress);
 
       const proposalCount = await moloch.proposalCount();
+
+
 
   });
 
@@ -171,36 +171,88 @@ contract('DAOContract', (accounts) => {
     //     console.log(await projectInstance.getProposalQueueLength());
     //     //console.log(await projectInstance.proposalCount());
     // });
+    it('Member Count', async () => {
+        let bef = await daoInstance.getMembers();
+        await daoInstance.addContributor({from: accounts[1]});
+        await daoInstance.addContributor({from: accounts[2]});
+        await daoInstance.addContributor({from: accounts[3]});
+        let aft = await daoInstance.getMembers();
+        assert.equal(parseInt(bef),1);
+        assert.equal(parseInt(aft),4);
+    });
+    
     it('check submit proposal', async () => {
         let bef = await daoInstance.getProposal();
-        await daoInstance.submitProposal(accounts[1],10,20,40,tokenAlpha.address,20,tokenAlpha.address,"112");
-        await daoInstance.submitProposal(accounts[1],10,20,40,tokenAlpha.address,20,tokenAlpha.address,"112");
+        await daoInstance.addContributor({from: accounts[1]});
+        await daoInstance.addContributor({from: accounts[2]});
+        await daoInstance.addContributor({from: accounts[3]});
+
+        await daoInstance.submitProposal(10,40,tokenAlpha.address,20,tokenAlpha.address,"112",{from: accounts[1]});
+        await daoInstance.submitProposal(15,20,tokenAlpha.address,25,tokenAlpha.address,"122",{from: accounts[2]});
+        await daoInstance.submitProposal(15,20,tokenAlpha.address,25,tokenAlpha.address,"122",{from: accounts[3]});
+        
         let aft = await daoInstance.getProposal();
+        assert.equal(parseInt(bef),parseInt(aft)-3);
+    });
+
+    // it('check vote and process proposal', async () => {
+    //     let bef=await daoInstance.getProposal();
+    //     await daoInstance.addContributor({from: accounts[1]});
+    //     await daoInstance.addContributor({from: accounts[2]});
+    //     let id=await daoInstance.submitProposal(10,40,tokenAlpha.address,20,tokenAlpha.address,"112",{from: accounts[1]});
+    //     let aft=await daoInstance.getProposal();
+    //     //console.log(id);
+    //     await daoInstance.submitVote(0,2,{from: accounts[0]});
+    //     await sleep(13000);
+    //     // sleep(13000).then(() => {
+    //     //      daoInstance.processProposal(0);
+
+    //     // });
+
+    //     await daoInstance.processProposal(0);
+    //     let res=await daoInstance.getResult();
+    //     assert.equal(parseInt(res),2);
+    //     assert.equal(parseInt(bef),parseInt(aft)-1);
+    // });
+
+    it('check vote', async () => {
+
+        let bef=await daoInstance.getProposal();
+        await daoInstance.addContributor({from: accounts[1]});
+        await daoInstance.addContributor({from: accounts[2]});
+
+        let id=await daoInstance.submitProposal(10,40,tokenAlpha.address,20,tokenAlpha.address,"112",{from: accounts[1]});
+        let aft=await daoInstance.getProposal();
+
+        await sleep(13000);
+
+        await daoInstance.submitVote(0,1,{from: accounts[0]});
+        //await daoInstance.submitVote(0,1,{from: accounts[1]});
+
+        let vot=await daoInstance.getMemberProposalVote(accounts[0],0);
+        let vot1=await daoInstance.getMemberProposalVote(accounts[1],0);
+
+        assert.equal(parseInt(bef),parseInt(aft)-1);
+    });
+
+    it('check cancel proposal', async () => {
+        let bef = await daoInstance.getProposal();
+        await daoInstance.addContributor({from: accounts[1]});
+
+        await daoInstance.submitProposal(10,40,tokenAlpha.address,20,tokenAlpha.address,"112",{from: accounts[1]});
+        await daoInstance.submitProposal(15,20,tokenAlpha.address,25,tokenAlpha.address,"122",{from: accounts[2]});
+
+        let aft = await daoInstance.getProposal();
+
+        await daoInstance.cancelProposal(parseInt(aft-2),{from: accounts[1]});
+
+        //await daoInstance.submitVote(parseInt(aft-2),1,{from: accounts[0]});
+        await daoInstance.submitVote(parseInt(aft-1),1,{from: accounts[0]});
+
         assert.equal(parseInt(bef),parseInt(aft)-2);
     });
-        it('check sponsor proposal', async () => {
-        let bef=await daoInstance.getProposal();
-        await daoInstance.submitProposal(accounts[1],10,20,40,tokenAlpha.address,20,tokenAlpha.address,"112");
-        await daoInstance.sponsorProposal(bef);
-        let aft=await daoInstance.getProposal();
-        let ajk=await daoInstance.getProposalQueueLength();
-        assert.equal(parseInt(bef),parseInt(aft)-1);
-        assert.equal(parseInt(ajk),1);
-    });
-        it('check vote and process proposal', async () => {
-        let bef=await daoInstance.getProposal();
-        let bjk=await daoInstance.getProposalQueueLength();
-        await daoInstance.submitProposal(accounts[1],10,20,40,tokenAlpha.address,20,tokenAlpha.address,"112");
-        await daoInstance.sponsorProposal(bef);
-        let aft=await daoInstance.getProposal();
-        let ajk=await daoInstance.getProposalQueueLength();
-        await daoInstance.submitVote(0,2);
-        await daoInstance.processProposal(0);
-        let res=await daoInstance.getResult();
-        assert.equal(parseInt(res),2);
-        assert.equal(parseInt(bef),parseInt(aft)-1);
-        assert.equal(parseInt(ajk),parseInt(bjk)+1);
-    });
+
+
 
   });
 
