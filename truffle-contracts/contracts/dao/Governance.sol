@@ -17,7 +17,6 @@ contract Governance is ReentrancyGuard {
     uint256 public votingPeriodLength; // default = 35 periods (7 days)
     uint256 public summoningTime; // needed to determine the current period
 
-    IERC20 public depositToken; // deposit token contract reference; default = wETH
     GuildBank public guildBank; // guild bank contract reference
 
     // HARD-CODED LIMITS
@@ -85,10 +84,8 @@ contract Governance is ReentrancyGuard {
 
     mapping(uint256 => Proposal) public proposals;
 
-    uint256[] public proposalQueue;
-
     modifier onlyMember {
-        require(members[msg.sender].shares >= 0 , "not a member");
+        require(members[msg.sender].exists == true , "not a member");
         _;
     }
 
@@ -110,8 +107,6 @@ contract Governance is ReentrancyGuard {
         require(_approvedTokens.length > 0, "need at least one approved token");
 
         admin = _admin;
-
-        depositToken = IERC20(_approvedTokens[0]);
 
         for (uint256 i = 0; i < _approvedTokens.length; i++) {
             require(_approvedTokens[i] != address(0), "_approvedToken cannot be 0");
@@ -201,6 +196,9 @@ contract Governance is ReentrancyGuard {
         
         require(proposalId < proposalCount, "proposal does not exist");
         Proposal storage proposal = proposals[proposalId];
+
+        require (proposal.flags[2]==false,"Proposal has been cancelled");
+        
 
         require(uintVote < 3, "must be less than 3");
         Vote vote = Vote(uintVote);
@@ -296,6 +294,7 @@ contract Governance is ReentrancyGuard {
 
         require(getCurrentPeriod() >= proposal.startingPeriod.add(votingPeriodLength), "proposal is not ready to be processed");
         require(proposal.flags[0] == false, "proposal has already been processed");
+        require (proposal.flags[2]==false,"Proposal has been cancelled");
         require(proposalId == 0 || proposals[proposalId.sub(1)].flags[0], "previous proposal must be processed");
     }
 
@@ -306,10 +305,10 @@ contract Governance is ReentrancyGuard {
 
        proposal.flags[2] = true; // cancelled
 
-       require(
-           proposal.tributeToken.transfer(proposal.proposer, proposal.tributeOffered),
-           "failed to return tribute to proposer"
-       );
+       // require(
+       //     proposal.tributeToken.transfer(proposal.proposer, proposal.tributeOffered),
+       //     "failed to return tribute to proposer"
+       // );
 
        emit CancelProposal(proposalId, msg.sender);
    }

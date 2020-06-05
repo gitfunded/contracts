@@ -44,7 +44,7 @@ async function forceMine () {
     return ethereum.send('evm_mine', [])
 }
 
-   function sleep(ms) {
+async function sleep(ms) {
       return new Promise(resolve => setTimeout(resolve, ms));
    }
 
@@ -95,6 +95,8 @@ contract('DAOContract', (accounts) => {
       guildBank = await GuildBank.at(guildBankAddress);
 
       const proposalCount = await moloch.proposalCount();
+
+
 
   });
 
@@ -181,9 +183,14 @@ contract('DAOContract', (accounts) => {
     
     it('check submit proposal', async () => {
         let bef = await daoInstance.getProposal();
-        await daoInstance.submitProposal(10,40,tokenAlpha.address,20,tokenAlpha.address,"112",{from: accounts[8]});
-        await daoInstance.submitProposal(15,20,tokenAlpha.address,25,tokenAlpha.address,"122",{from: accounts[7]});
-        await daoInstance.submitProposal(15,20,tokenAlpha.address,25,tokenAlpha.address,"122",{from: accounts[4]});
+        await daoInstance.addContributor({from: accounts[1]});
+        await daoInstance.addContributor({from: accounts[2]});
+        await daoInstance.addContributor({from: accounts[3]});
+
+        await daoInstance.submitProposal(10,40,tokenAlpha.address,20,tokenAlpha.address,"112",{from: accounts[1]});
+        await daoInstance.submitProposal(15,20,tokenAlpha.address,25,tokenAlpha.address,"122",{from: accounts[2]});
+        await daoInstance.submitProposal(15,20,tokenAlpha.address,25,tokenAlpha.address,"122",{from: accounts[3]});
+        
         let aft = await daoInstance.getProposal();
         assert.equal(parseInt(bef),parseInt(aft)-3);
     });
@@ -209,22 +216,40 @@ contract('DAOContract', (accounts) => {
     // });
 
     it('check vote', async () => {
+
         let bef=await daoInstance.getProposal();
         await daoInstance.addContributor({from: accounts[1]});
         await daoInstance.addContributor({from: accounts[2]});
+
         let id=await daoInstance.submitProposal(10,40,tokenAlpha.address,20,tokenAlpha.address,"112",{from: accounts[1]});
         let aft=await daoInstance.getProposal();
+
+        await sleep(13000);
 
         await daoInstance.submitVote(0,1,{from: accounts[0]});
         //await daoInstance.submitVote(0,1,{from: accounts[1]});
 
         let vot=await daoInstance.getMemberProposalVote(accounts[0],0);
-        console.log(vot);
         let vot1=await daoInstance.getMemberProposalVote(accounts[1],0);
-        console.log(vot1);
-
 
         assert.equal(parseInt(bef),parseInt(aft)-1);
+    });
+
+    it('check cancel proposal', async () => {
+        let bef = await daoInstance.getProposal();
+        await daoInstance.addContributor({from: accounts[1]});
+
+        await daoInstance.submitProposal(10,40,tokenAlpha.address,20,tokenAlpha.address,"112",{from: accounts[1]});
+        await daoInstance.submitProposal(15,20,tokenAlpha.address,25,tokenAlpha.address,"122",{from: accounts[2]});
+
+        let aft = await daoInstance.getProposal();
+
+        await daoInstance.cancelProposal(parseInt(aft-2),{from: accounts[1]});
+
+        //await daoInstance.submitVote(parseInt(aft-2),1,{from: accounts[0]});
+        await daoInstance.submitVote(parseInt(aft-1),1,{from: accounts[0]});
+
+        assert.equal(parseInt(bef),parseInt(aft)-2);
     });
 
 
